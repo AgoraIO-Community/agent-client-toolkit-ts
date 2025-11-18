@@ -7,13 +7,13 @@ A TypeScript/JavaScript library for building conversational AI applications with
 
 ## Features
 
-- 🎤 Real-time voice communication with AI agents
-- 📝 Automatic transcription of user and agent speech
-- 🔄 State management for AI agent interactions
-- 📊 Agent performance metrics
-- 🎯 Event-driven architecture
-- 💬 Support for text and image messages
-- ⚡ Optimized for low-latency interactions
+- Real-time voice communication with AI agents
+- Automatic transcription of user and agent speech
+- State management for AI agent interactions
+- Agent performance metrics
+- Event-driven architecture
+- Support for text and image messages
+- Optimized for low-latency interactions
 
 ## Installation
 
@@ -34,7 +34,7 @@ Install peer dependencies:
 npm install agora-rtc-sdk-ng agora-rtm
 ```
 
-⚠️ **Important:** Before using this library, you must enable the "Real-time Messaging RTM" feature in the [Agora Console](https://console.agora.io/).
+**Important:** Before using this library, you must enable the "Conversational AI" and "Real-time Messaging RTM" features in the [Agora Console](https://console.agora.io/).
 
 ## Demo
 
