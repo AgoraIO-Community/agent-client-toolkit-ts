@@ -1,0 +1,45 @@
+# Source files are included, but exclude unnecessary ones
+helper/
+lib/dev.ts
+lib/local-storage.ts
+lib/pcm.ts
+lib/request.ts
+
+# Build configuration
+tsconfig.json
+tsconfig.esm.json
+tsconfig.cjs.json
+
+# Development files
+.git
+.gitignore
+node_modules/
+*.log
+*.tgz
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# Documentation (keep README.md)
+docs/
+*.plan.md
+
+# Misc
+.env
+.env.*
+coverage/
+

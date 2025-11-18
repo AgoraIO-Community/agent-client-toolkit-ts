@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agora Voice AI Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 16px;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .section {
+        margin-bottom: 30px;
+      }
+
+      .section h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ccc;
+      }
+
+      .status-indicator.active {
+        background: #10b981;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-secondary {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .input-group input {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .transcript {
+        max-height: 400px;
+        overflow-y: auto;
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 15px;
+      }
+
+      .message {
+        margin-bottom: 15px;
+        padding: 12px;
+        border-radius: 8px;
+        max-width: 80%;
+      }
+
+      .message.user {
+        background: #667eea;
+        color: white;
+        margin-left: auto;
+      }
+
+      .message.agent {
+        background: white;
+        border: 2px solid #e5e7eb;
+      }
+
+      .message-role {
+        font-weight: 600;
+        font-size: 12px;
+        margin-bottom: 5px;
+        opacity: 0.8;
+      }
+
+      .message-text {
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .logs {
+        max-height: 300px;
+        overflow-y: auto;
+        background: #1f2937;
+        color: #10b981;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .log-entry {
+        margin-bottom: 5px;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .alert-warning {
+        background: #fef3c7;
+        color: #92400e;
+        border: 2px solid #fbbf24;
+      }
+
+      .alert-info {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 2px solid #60a5fa;
+      }
+
+      code {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎤 Agora Voice AI Demo</h1>
+        <p>A comprehensive example of the agora-voice-ai package</p>
+      </div>
+
+      <div class="content">
+        <!-- Configuration Section -->
+        <div class="section">
+          <h2>⚙️ Configuration</h2>
+          <div class="alert alert-warning">
+            ⚠️ <strong>Before running:</strong> Update the configuration in
+            <code>demo.ts</code> with your Agora App ID, tokens, and agent user
+            ID.
+          </div>
+          <div class="alert alert-info">
+            ℹ️ This demo requires both RTC and RTM to be properly configured.
+            Make sure RTM is enabled in your Agora Console.
+          </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="section">
+          <h2>📊 Connection Status</h2>
+          <div class="status">
+            <div class="status-indicator" id="rtc-status"></div>
+            <span
+              >RTC Connection: <strong id="rtc-text">Disconnected</strong></span
+            >
+          </div>
+          <div class="status">
+            <div class="status-indicator" id="rtm-status"></div>
+            <span
+              >RTM Connection: <strong id="rtm-text">Disconnected</strong></span
+            >
+          </div>
+          <div class="status">
+            <div class="status-indicator" id="voiceai-status"></div>
+            <span
+              >Voice AI: <strong id="voiceai-text">Not Started</strong></span
+            >
+          </div>
+          <div class="status">
+            <span>Agent State: <strong id="agent-state">Unknown</strong></span>
+          </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="section">
+          <h2>🎮 Controls</h2>
+          <div class="controls">
+            <button class="btn btn-primary" id="start-btn">
+              ▶️ Start Demo
+            </button>
+            <button class="btn btn-danger" id="stop-btn" disabled>
+              ⏹️ Stop Demo
+            </button>
+            <button class="btn btn-secondary" id="interrupt-btn" disabled>
+              ⏸️ Interrupt Agent
+            </button>
+          </div>
+          <div class="input-group">
+            <input
+              type="text"
+              id="message-input"
+              placeholder="Type a message to send to the AI agent..."
+              disabled
+            />
+            <button class="btn btn-primary" id="send-btn" disabled>Send</button>
+          </div>
+          <div class="input-group">
+            <input
+              type="text"
+              id="image-input"
+              placeholder="Enter image URL..."
+              disabled
+            />
+            <button class="btn btn-secondary" id="send-image-btn" disabled>
+              Send Image
+            </button>
+          </div>
+        </div>
+
+        <!-- Transcript Section -->
+        <div class="section">
+          <h2>💬 Conversation</h2>
+          <div class="transcript" id="transcript">
+            <p style="text-align: center; color: #9ca3af">
+              No messages yet. Start the demo and send a message!
+            </p>
+          </div>
+        </div>
+
+        <!-- Logs Section -->
+        <div class="section">
+          <h2>📋 Console Logs</h2>
+          <div class="logs" id="logs">
+            <div class="log-entry">Waiting to start...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      // This is a placeholder for the compiled demo.ts
+      // In a real setup, you would:
+      // 1. Compile demo.ts using TypeScript compiler or a bundler (webpack, vite, etc.)
+      // 2. Import the compiled JavaScript here
+
+      // For now, we'll just show instructions
+      const logs = document.getElementById('logs');
+
+      function addLog(message, type = 'info') {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logs.appendChild(entry);
+        logs.scrollTop = logs.scrollHeight;
+      }
+
+      addLog('📚 To use this demo:');
+      addLog('1. Install dependencies: npm install');
+      addLog('2. Update configuration in demo.ts with your Agora credentials');
+      addLog(
+        '3. Compile TypeScript: npx tsc demo/demo.ts --outDir demo/dist --module es2020 --target es2020 --moduleResolution node'
+      );
+      addLog('4. Update this HTML to import the compiled demo.js');
+      addLog('5. Serve this HTML file with a local web server');
+      addLog('');
+      addLog(
+        '💡 Alternatively, you can run the demo.ts directly in a Node.js environment'
+      );
+      addLog('   or use it as a reference for your own implementation.');
+      addLog('');
+      addLog('📖 See demo/README.md for detailed instructions.');
+
+      // UI interaction handlers (to be connected with actual demo functions)
+      document.getElementById('start-btn').addEventListener('click', () => {
+        addLog(
+          'ℹ️ Please compile and import demo.ts to enable this functionality'
+        );
+      });
+
+      // Prevent form submission on Enter key
+      document
+        .getElementById('message-input')
+        .addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('send-btn').click();
+          }
+        });
+    </script>
+  </body>
+</html>
