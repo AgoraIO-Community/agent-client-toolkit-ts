@@ -1,8 +1,8 @@
-# Agora Voice AI
+# Agora Conversational AI Toolkit
 
 A TypeScript/JavaScript library for building conversational AI applications with real-time voice interactions using Agora RTC and RTM services.
 
-[![npm version](https://img.shields.io/npm/v/agora-voice-ai.svg)](https://www.npmjs.com/package/agora-voice-ai)
+[![npm version](https://img.shields.io/npm/v/agora-convo-ai-toolkit.svg)](https://www.npmjs.com/package/agora-convo-ai-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -18,7 +18,7 @@ A TypeScript/JavaScript library for building conversational AI applications with
 ## Installation
 
 ```bash
-npm install agora-voice-ai
+npm install agora-convo-ai-toolkit
 ```
 
 ## Prerequisites
@@ -40,7 +40,7 @@ npm install agora-rtc-sdk-ng agora-rtm
 
 📚 **Want to see a complete working example?**
 
-Check out the [demo](./demo) directory for a comprehensive example that demonstrates all features of the agora-voice-ai package, including:
+Check out the [demo](./demo) directory for a comprehensive example of all features in the agora-convo-ai-toolkit package, including:
 
 - Complete initialization workflow
 - Event handling for all event types
@@ -57,13 +57,13 @@ See [demo/README.md](./demo/README.md) for setup instructions and how to run the
 **ES Modules:**
 
 ```typescript
-import { AgoraVoiceAI, AgoraVoiceAIEvents } from 'agora-voice-ai';
+import { AgoraVoiceAI, AgoraVoiceAIEvents } from 'agora-convo-ai-toolkit';
 ```
 
 **CommonJS:**
 
 ```javascript
-const { AgoraVoiceAI, AgoraVoiceAIEvents } = require('agora-voice-ai');
+const { AgoraVoiceAI, AgoraVoiceAIEvents } = require('agora-convo-ai-toolkit');
 ```
 
 ### 2. Set Audio Parameters (Required)
@@ -81,7 +81,7 @@ const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 ### 3. Initialize the API
 
 ```typescript
-import { AgoraVoiceAI } from 'agora-voice-ai';
+import { AgoraVoiceAI } from 'agora-convo-ai-toolkit';
 
 // Initialize with your RTC and RTM instances
 AgoraVoiceAI.init({
@@ -306,7 +306,7 @@ import type {
   TranscriptHelperItem,
   AgentMetric,
   ModuleError,
-} from 'agora-voice-ai';
+} from 'agora-convo-ai-toolkit';
 ```
 
 ## Browser Support
@@ -326,6 +326,6 @@ MIT
 
 For issues and questions:
 
-- [GitHub Issues](https://github.com/your-repo/agora-voice-ai/issues)
+- [GitHub Issues](https://github.com/AgoraIO-Community/convo-ai-toolkit/issues)
 - [Agora Documentation](https://docs.agora.io/)
 - [Agora Developer Community](https://www.agora.io/en/community/)

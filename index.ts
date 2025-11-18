@@ -861,6 +861,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
 
 // Export all types, enums, and interfaces
 export {
+  // Main config
+  type AgoraVoiceAIConfig,
   // Enums
   TranscriptHelperMode,
   MessageType,

@@ -1,6 +1,6 @@
 # Agora Voice AI Demo
 
-This demo demonstrates how to use the `agora-voice-ai` package to build a conversational AI application with real-time voice interactions.
+This demo demonstrates how to use the `agora-convo-ai-toolkit` package to build a conversational AI application with real-time voice interactions.
 
 ## 📋 Prerequisites
 
@@ -26,7 +26,7 @@ npm install
 Or if you're using this demo standalone:
 
 ```bash
-npm install agora-voice-ai agora-rtc-sdk-ng agora-rtm
+npm install agora-convo-ai-toolkit agora-rtc-sdk-ng agora-rtm
 ```
 
 ### 2. Configure the Demo
@@ -242,4 +242,4 @@ Tokens have expiration times. Implement token refresh in production:
 
 ## 📝 License
 
-This demo is part of the agora-voice-ai package and follows the same MIT license.
+This demo is part of the agora-convo-ai-toolkit package and follows the same MIT license.

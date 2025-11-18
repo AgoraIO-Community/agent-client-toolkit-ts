@@ -1,5 +1,5 @@
 {
-  "name": "agora-voice-ai",
+  "name": "agora-convo-ai-toolkit",
   "version": "1.8.0",
   "description": "Agora Voice AI SDK - A conversational AI API for real-time voice interactions with AI agents using Agora RTC and RTM",
   "main": "./dist/cjs/index.js",
@@ -19,10 +19,13 @@
   },
   "files": [
     "dist",
-    "src",
     "README.md",
     "LICENSE"
   ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "build:esm": "tsc --project tsconfig.esm.json",
@@ -41,7 +44,7 @@
     "voice-assistant",
     "transcription"
   ],
-  "author": "",
+  "author": "Agora.io",
   "license": "MIT",
   "peerDependencies": {
     "agora-rtc-sdk-ng": ">=4.23.4",
@@ -58,10 +61,10 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit/issues"
   },
-  "homepage": ""
+  "homepage": "https://github.com/AgoraIO-Community/convo-ai-toolkit#readme"
 }

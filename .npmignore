@@ -5,6 +5,9 @@ lib/local-storage.ts
 lib/pcm.ts
 lib/request.ts
 
+# Demo directory (not published to npm)
+demo/
+
 # Build configuration
 tsconfig.json
 tsconfig.esm.json
