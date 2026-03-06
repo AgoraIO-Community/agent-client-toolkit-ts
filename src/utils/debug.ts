@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Logger types and manager (from lib/logger.ts)
+// Logger types and manager
 // ---------------------------------------------------------------------------
 
 const MAX_ZIP_SIZE = 4 * 1024 * 1024; // 4MB
@@ -119,7 +119,7 @@ class LogManager {
 export const logger = new LogManager();
 
 // ---------------------------------------------------------------------------
-// General utilities (from lib/utils.ts)
+// General utilities
 // ---------------------------------------------------------------------------
 
 export function decodeStreamMessage(stream: Uint8Array) {
@@ -141,11 +141,20 @@ export const genTraceID = (length: number = 8) => {
 };
 
 // ---------------------------------------------------------------------------
-// Log formatting (from utils/index.ts)
+// Log formatting
 // ---------------------------------------------------------------------------
+
+const safeStringify = (arg: unknown): string => {
+  if (typeof arg === 'string') return arg;
+  try {
+    return JSON.stringify(arg);
+  } catch {
+    return String(arg);
+  }
+};
 
 export const factoryFormatLog =
   (options: { tag: string }) =>
   (...args: unknown[]) => {
-    return `[${options.tag}] ${args.map((arg) => JSON.stringify(arg)).join(' ')}`;
+    return `[${options.tag}] ${args.map(safeStringify).join(' ')}`;
   };

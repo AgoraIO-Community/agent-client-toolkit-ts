@@ -51,12 +51,10 @@ import { CovSubRenderController } from '../rendering/sub-render';
 import { ChunkedMessageAssembler } from '../messaging/chunked';
 
 const TAG = 'AgoraVoiceAI';
-// const CONSOLE_LOG_PREFIX = `[${TAG}]`
 const VERSION = '0.1.0';
 
 const formatLog = factoryFormatLog({ tag: TAG });
 
-// AgoraVoiceAIConfig and RTMConfig are defined in ./config and re-exported from src/index.ts
 export type { AgoraVoiceAIConfig, RTMConfig };
 
 /**
@@ -171,6 +169,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   private metricsReporter: IMetricsReporter = new ConsoleMetricsReporter();
   private chunkedAssembler = new ChunkedMessageAssembler();
   private _eventTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private _trackTranscriptHandler: ((...args: unknown[]) => void) | null = null;
+  private _trackStateHandler: ((...args: unknown[]) => void) | null = null;
 
   // Pre-bound event handlers — stored so unbind uses the same reference as bind.
   private readonly _boundHandleRtcAudioPTS = this._handleRtcAudioPTS.bind(this);
@@ -197,6 +197,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       `${AgoraVoiceAI.NAME} initialized, version: ${AgoraVoiceAI.VERSION}`
     );
 
+    // Wraps each CovSubRenderController callback so an error in one cannot
+    // bubble up and crash the RTC/RTM event handlers.
     const safe = <F extends (...args: never[]) => void>(fn: F, name: string): F =>
       ((...args: Parameters<F>) => {
         try {
@@ -207,6 +209,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       }) as unknown as F;
 
     this.covSubRenderController = new CovSubRenderController({
+      enableLog: this.enableLog,
       onChatHistoryUpdated: safe(this.onChatHistoryUpdated.bind(this), 'onChatHistoryUpdated'),
       onAgentStateChanged: safe(this.onAgentStateChanged.bind(this), 'onAgentStateChanged'),
       onAgentInterrupted: safe(this.onAgentInterrupted.bind(this), 'onAgentInterrupted'),
@@ -222,16 +225,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   /**
    * Gets the singleton instance of AgoraVoiceAI.
    *
-   * Retrieves the singleton instance of the AgoraVoiceAI class. This method
-   * ensures that only one instance of AgoraVoiceAI exists throughout the
-   * application lifecycle.
-   *
-   * @remarks
-   * - Must call {@link init} before using this method
-   * - Throws error if instance is not initialized
-   *
    * @returns The singleton instance of AgoraVoiceAI
-   * @throws {@link NotFoundError} When AgoraVoiceAI is not initialized
+   * @throws {@link NotInitializedError} When AgoraVoiceAI has not been initialized via {@link init}
    * @since 0.1.0
    */
   public static getInstance() {
@@ -373,13 +368,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
 
   /**
    * Unsubscribes from the message channel and cleans up resources.
-   *
-   * This method unbinds the RTC and RTM events, clears the channel,
-   * and cleans up the CovSubRenderController.
-   *
-   * @remarks
-   * - Must call {@link subscribeMessage} before using this method
-   * - Throws error if not initialized
+   * Safe to call even if {@link subscribeMessage} was not called — unbind
+   * operations are guarded against null engines.
    *
    * @since 0.1.0
    */
@@ -397,13 +387,9 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
 
   /**
    * Destroys the AgoraVoiceAI instance and cleans up resources.
-   *
-   * This method unbinds all RTC and RTM events, clears the channel,
-   * and cleans up the CovSubRenderController.
-   *
-   * @remarks
-   * - Must call {@link unsubscribe} before using this method
-   * - Throws error if not initialized
+   * Safe to call multiple times — no-op if not initialized or already destroyed.
+   * Only removes the toolkit's own event listeners from the RTC/RTM engines;
+   * consumer-registered listeners are preserved.
    *
    * @since 0.1.0
    */
@@ -415,9 +401,9 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     instance._clearEventTimeout();
     instance.covSubRenderController.cleanup();
     instance.chunkedAssembler.clear();
-    try { instance.rtcEngine?.removeAllListeners(); } catch { /* best effort */ }
+    instance.unbindRtcEvents();
     instance.rtcEngine = null;
-    try { instance.rtmEngine?.removeAllListeners(); } catch { /* best effort */ }
+    instance.unbindRtmEvents();
     instance.rtmEngine = null;
     instance.renderMode = TranscriptHelperMode.UNKNOWN;
     instance.channel = null;
@@ -529,7 +515,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       this.callMessagePrint(
         ELoggerType.debug,
         `>>> [traceID:${traceId}] [chat]`,
-        'sucessfully sent chat message',
+        'successfully sent chat message',
         result
       );
     } catch (error: unknown) {
@@ -539,7 +525,10 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
         'failed to send chat message',
         error
       );
-      throw new Error('failed to send chat message');
+      throw new ConversationalAIError(
+        `Failed to send chat message: ${(error as Error).message ?? error}`,
+        { cause: error }
+      );
     }
   }
 
@@ -600,17 +589,20 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       this.callMessagePrint(
         ELoggerType.debug,
         `>>> [traceID:${traceId}] [chat]`,
-        'sucessfully sent chat message',
+        'successfully sent image message',
         result
       );
     } catch (error: unknown) {
       this.callMessagePrint(
         ELoggerType.error,
         `>>> [traceID:${traceId}] [chat]`,
-        'failed to send chat message',
+        'failed to send image message',
         error
       );
-      throw new Error('failed to send chat message');
+      throw new ConversationalAIError(
+        `Failed to send image message: ${(error as Error).message ?? error}`,
+        { cause: error }
+      );
     }
   }
 
@@ -650,7 +642,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       this.callMessagePrint(
         ELoggerType.debug,
         `>>> [traceID:${traceId}] [interrupt]`,
-        'sucessfully sent interrupt message',
+        'successfully sent interrupt message',
         result
       );
     } catch (error: unknown) {
@@ -660,7 +652,10 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
         'failed to send interrupt message',
         error
       );
-      throw new Error('failed to send interrupt message');
+      throw new ConversationalAIError(
+        `Failed to send interrupt: ${(error as Error).message ?? error}`,
+        { cause: error }
+      );
     }
   }
 
@@ -770,8 +765,18 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       clearTimeout(this._eventTimeoutId);
       this._eventTimeoutId = null;
     }
+    if (this._trackTranscriptHandler) {
+      this.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, this._trackTranscriptHandler as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]);
+      this._trackTranscriptHandler = null;
+    }
+    if (this._trackStateHandler) {
+      this.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, this._trackStateHandler as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]);
+      this._trackStateHandler = null;
+    }
   }
 
+  // Dev-only: warns after 15s if no TRANSCRIPT_UPDATED or AGENT_STATE_CHANGED
+  // events arrive. Helps diagnose misconfigured channels or missing RTM setup.
   private _startEventTimeoutWarnings() {
     if (process.env.NODE_ENV === 'production') return;
     this._clearEventTimeout();
@@ -782,6 +787,9 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     const trackTranscript = trackEvent('TRANSCRIPT_UPDATED');
     const trackState = trackEvent('AGENT_STATE_CHANGED');
 
+    this._trackTranscriptHandler = trackTranscript;
+    this._trackStateHandler = trackState;
+
     this.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, trackTranscript as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]);
     this.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, trackState as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]);
 
@@ -789,6 +797,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       // Clean up tracking listeners
       this.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, trackTranscript as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]);
       this.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, trackState as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]);
+      this._trackTranscriptHandler = null;
+      this._trackStateHandler = null;
       this._eventTimeoutId = null;
 
       if (!receivedEvents.has('TRANSCRIPT_UPDATED')) {
@@ -819,11 +829,11 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     );
   }
   private unbindRtcEvents() {
-    this.getCfg().rtcEngine.off(
+    this.rtcEngine?.off(
       RTCEventType.AUDIO_PTS,
       this._boundHandleRtcAudioPTS
     );
-    this.getCfg().rtcEngine.off(
+    this.rtcEngine?.off(
       RTCEventType.STREAM_MESSAGE,
       this._boundHandleRtcStreamMessage
     );
@@ -941,7 +951,6 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       `>>> [traceID:${traceId}] ${RTMEventType.MESSAGE}`,
       `Publisher: ${message.publisher}, type: ${message.messageType}`
     );
-    // Handle the message
     const messageData = message.message;
     let parsedMessage: unknown;
 
@@ -1005,7 +1014,6 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       `>>> [traceID:${traceId}] ${RTMEventType.PRESENCE}`,
       `Publisher: ${presence.publisher}`
     );
-    // Handle the presence event
     const stateChanged = presence.stateChanged;
     if (stateChanged?.state && stateChanged?.turn_id) {
       this.callMessagePrint(

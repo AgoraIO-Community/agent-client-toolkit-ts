@@ -97,7 +97,7 @@ export interface AgoraVoiceAIEventHandlers {
 // --- EventHelper ---
 
 /**
- * Log verbosity for EventHelper and all subclasses (RTCHelper, AgoraVoiceAI, etc.).
+ * Log verbosity for EventHelper and all subclasses (AgoraVoiceAI, etc.).
  *
  * - `NONE`   — no console output (default, suitable for production)
  * - `ERRORS` — only handler exceptions logged via `console.error`
@@ -113,6 +113,7 @@ type EventHandler<T extends any[]> = (...data: T) => void;
 
 export class EventHelper<T extends Record<keyof T, (...args: any[]) => void>> {
   private _eventMap: Map<keyof T, EventHandler<any[]>[]> = new Map();
+  private _onceWrappers: Map<Function, Function> = new Map();
   private _logLevel: EventLogLevel = EventLogLevel.NONE;
   private _maxListeners = 10;
   private _warnedEvents: Set<keyof T> = new Set();
@@ -149,11 +150,17 @@ export class EventHelper<T extends Record<keyof T, (...args: any[]) => void>> {
     return counts;
   }
 
+  /**
+   * Registers a one-time handler that is automatically removed after the first invocation.
+   * The handler can also be removed before it fires via `off(evt, cb)`.
+   */
   once<Key extends keyof T>(evt: Key, cb: T[Key]) {
     const wrapper = (...args: any[]) => {
       this.off(evt, wrapper as any);
+      this._onceWrappers.delete(cb as Function);
       (cb as any)(...args);
     };
+    this._onceWrappers.set(cb as Function, wrapper);
     this.on(evt, wrapper as any);
     return this;
   }
@@ -184,10 +191,12 @@ export class EventHelper<T extends Record<keyof T, (...args: any[]) => void>> {
   off<Key extends keyof T>(evt: Key, cb: T[Key]) {
     const cbs = this._eventMap.get(evt);
     if (cbs) {
+      const actual = this._onceWrappers.get(cb as Function) ?? cb;
       this._eventMap.set(
         evt,
-        cbs.filter((it) => it !== cb)
+        cbs.filter((it) => it !== actual)
       );
+      this._onceWrappers.delete(cb as Function);
       if (this._logLevel >= EventLogLevel.DEBUG) {
         console.debug(`Unsubscribed from event: ${String(evt)}`);
       }
@@ -197,6 +206,7 @@ export class EventHelper<T extends Record<keyof T, (...args: any[]) => void>> {
 
   removeAllEventListeners(): void {
     this._eventMap.clear();
+    this._onceWrappers.clear();
     if (this._logLevel >= EventLogLevel.DEBUG) {
       console.debug('Removed all event listeners');
     }

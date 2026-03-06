@@ -133,15 +133,19 @@ export interface HelperRTCEvents {
     reason?: ConnectionDisconnectedReason;
     channel: string;
   }) => void;
-  // [RTCEventType.AUDIO_METADATA]: (metadata: Uint8Array) => void @deprecated
   [RTCEventType.AUDIO_PTS]: (pts: number) => void;
   [RTCEventType.STREAM_MESSAGE]: (uid: UID, stream: Uint8Array) => void;
 }
 
 export class ConversationalAIError extends Error {
-  constructor(message: string) {
+  readonly cause?: unknown;
+
+  constructor(message: string, options?: { cause?: unknown }) {
     super(message);
     this.name = 'ConversationalAIError';
+    if (options?.cause !== undefined) {
+      this.cause = options.cause;
+    }
   }
 }
 

@@ -12,9 +12,7 @@
  * When all chunks for a message_id are received, the base64 parts are
  * concatenated, decoded, and JSON-parsed to yield the complete message object.
  *
- * Ported from Ben's handleChunkedMessage() at
- * ben-agent-toolkit/packages/conversational-ai/index.ts:127-170.
- * Key differences from the original:
+ * Key differences from the original reference implementation:
  *   - Extracted into a standalone, testable class.
  *   - Added deduplication by part_idx (Ben's version deduplicated only at the
  *     message level after full assembly).
