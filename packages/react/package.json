@@ -1,0 +1,48 @@
+{
+  "name": "@agora/conversational-ai-toolkit-react",
+  "version": "0.1.0",
+  "description": "React hooks for Agora Conversational AI Toolkit",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsup && tsc --emitDeclarationOnly --skipLibCheck --outDir dist",
+    "build:types": "tsc --emitDeclarationOnly --skipLibCheck --outDir dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm run build"
+  },
+  "peerDependencies": {
+    "@agora/conversational-ai-toolkit": "workspace:*",
+    "agora-rtc-react": ">=2.0.0",
+    "react": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^18.0.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "jsdom": "^24.1.3",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.9"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit"
+  }
+}

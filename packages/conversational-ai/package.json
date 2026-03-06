@@ -1,0 +1,68 @@
+{
+  "name": "@agora/conversational-ai-toolkit",
+  "version": "0.1.0",
+  "description": "Agora Conversational AI Toolkit — real-time voice agent integration for web",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "LODASH-AUDIT.md"],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "agora-rtc-sdk-ng": ">=4.23.4",
+    "agora-rtm": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "agora-rtm": { "optional": true }
+  },
+  "optionalDependencies": {
+    "jszip": ">=3.0.0",
+    "@agora-js/report": ">=4.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "jsdom": "^24.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^2.0.0"
+  },
+  "keywords": [
+    "agora",
+    "voice-ai",
+    "conversational-ai",
+    "rtc",
+    "rtm",
+    "real-time-communication",
+    "ai-agent",
+    "voice-assistant",
+    "transcription"
+  ],
+  "author": "Agora.io",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit"
+  },
+  "bugs": {
+    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit/issues"
+  },
+  "homepage": "https://github.com/AgoraIO-Community/convo-ai-toolkit#readme"
+}

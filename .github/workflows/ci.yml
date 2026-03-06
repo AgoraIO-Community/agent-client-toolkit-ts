@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter @agora/conversational-ai-toolkit build
+
+      - name: Build React
+        run: pnpm --filter @agora/conversational-ai-toolkit-react build
+
+      - name: Typecheck core
+        run: pnpm --filter @agora/conversational-ai-toolkit typecheck
+
+      - name: Test core
+        run: pnpm --filter @agora/conversational-ai-toolkit test
+
+      - name: Test React
+        run: pnpm --filter @agora/conversational-ai-toolkit-react test

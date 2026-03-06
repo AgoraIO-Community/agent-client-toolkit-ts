@@ -1,0 +1,741 @@
+import type { RTMEvents } from 'agora-rtm';
+
+import type {
+  AgentState,
+  AgentTranscription,
+  MessageError,
+  MessageInterrupt,
+  MessageMetrics,
+  MessageSalStatusData,
+  PresenceState,
+  TranscriptHelperItem,
+  TranscriptionBase,
+  UserTranscription,
+} from '../core/types';
+import { AgoraVoiceAIEvents } from '../core/events';
+import {
+  ChatMessageType,
+  MessageType,
+  ModuleType,
+  TranscriptHelperMode,
+  TurnStatus,
+} from '../core/types';
+import type { AgoraVoiceAIEventHandlers } from '../core/events';
+import { ELoggerType, factoryFormatLog, logger } from '../utils/debug';
+import { SubRenderPTS } from './sub-render-pts';
+import { SubRenderQueue } from './sub-render-queue';
+
+const TAG = 'CovSubRenderController';
+const CONSOLE_LOG_PREFIX = `[${TAG}]`;
+const SELF_USER_ID = 0;
+
+const DEFAULT_INTERVAL = 200; // milliseconds
+const DEFAULT_CHUNK_INTERVAL = 100; // milliseconds, 10 char/s
+
+const formatLog = factoryFormatLog({ tag: TAG });
+
+/**
+ * CovSubRenderController is a service that manages the transcript messages from RTM messages.
+ *
+ * Best practices:
+ *
+ * 1. Bind `onChatHistoryUpdated` and `onAgentStateChanged` callbacks to handle chat history updates and agent state changes when initializing the service.
+ *
+ * 2. Call `run` method to start the service. One common use case is to call it after the user joins a channel.
+ *
+ * 3. Call `setPts` method to update the current PTS (Presentation Time Stamp) when receiving new media data. This is crucial for synchronizing the transcripts with the media playback.
+ *
+ * 4. [Cleanup] Call `cleanup` method to reset the service state when leaving a channel or when the service is no longer needed. This will clear the chat history, queue, and other internal states.
+ */
+export class CovSubRenderController {
+  private static NAME = TAG;
+  private callMessagePrint: (type: ELoggerType, ...args: unknown[]) => void;
+  public static self_uid = SELF_USER_ID;
+
+  private _mode: TranscriptHelperMode = TranscriptHelperMode.UNKNOWN;
+  private _agentMessageState: {
+    state: AgentState;
+    turn_id: string | number;
+    timestamp: number;
+  } | null = null;
+  private _transcriptChunk: {
+    index: number;
+    data: AgentTranscription;
+    uid: string;
+  } | null = null;
+
+  private _queue: SubRenderQueue;
+  private _pts: SubRenderPTS;
+
+  public get chatHistory(): TranscriptHelperItem<
+    Partial<UserTranscription | AgentTranscription>
+  >[] {
+    return this._queue.chatHistory;
+  }
+
+  public onChatHistoryUpdated:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]
+    | null = null;
+  public onAgentStateChanged:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]
+    | null;
+  public onAgentInterrupted:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_INTERRUPTED]
+    | null = null;
+  public onDebugLog:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.DEBUG_LOG]
+    | null = null;
+  public onAgentMetrics:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_METRICS]
+    | null = null;
+  public onAgentError:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_ERROR]
+    | null = null;
+  public onMessageReceipt:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED]
+    | null = null;
+  public onMessageError:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_ERROR]
+    | null = null;
+  public onMessageSalStatus:
+    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_SAL_STATUS]
+    | null = null;
+
+  constructor(
+    options: {
+      messageCacheTimeout?: number;
+      interval?: number;
+      onChatHistoryUpdated?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED];
+      onAgentStateChanged?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED];
+      onAgentInterrupted?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_INTERRUPTED];
+      onDebugLog?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.DEBUG_LOG];
+      onAgentMetrics?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_METRICS];
+      onAgentError?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_ERROR];
+      onMessageReceipt?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED];
+      onMessageError?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_ERROR];
+      onMessageSalStatus?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_SAL_STATUS];
+    } = {}
+  ) {
+    this.callMessagePrint = (
+      type: ELoggerType = ELoggerType.debug,
+      ...args: unknown[]
+    ) => {
+      logger[type](formatLog(...args));
+      this.onDebugLog?.(`[${type}] ${formatLog(...args)}`);
+    };
+    this.callMessagePrint(
+      ELoggerType.debug,
+      `${CovSubRenderController.NAME} initialized`
+    );
+
+    const interval = options.interval ?? DEFAULT_INTERVAL;
+
+    this._queue = new SubRenderQueue(
+      this.callMessagePrint,
+      this._mutateChatHistory.bind(this)
+    );
+    this._pts = new SubRenderPTS(
+      interval,
+      this.callMessagePrint,
+      this._queue.processQueue.bind(this._queue)
+    );
+
+    this.onChatHistoryUpdated = options.onChatHistoryUpdated ?? null;
+    this.onAgentStateChanged = options.onAgentStateChanged ?? null;
+    this.onAgentInterrupted = options.onAgentInterrupted ?? null;
+    this.onDebugLog = options.onDebugLog ?? null;
+    this.onAgentMetrics = options.onAgentMetrics ?? null;
+    this.onAgentError = options.onAgentError ?? null;
+    this.onMessageReceipt = options.onMessageReceipt ?? null;
+    this.onMessageError = options.onMessageError ?? null;
+    this.onMessageSalStatus = options.onMessageSalStatus ?? null;
+  }
+
+  private _mutateChatHistory() {
+    // console.debug(CONSOLE_LOG_PREFIX, 'Mutate chatHistory', this._queue.chatHistory)
+    this.callMessagePrint(
+      ELoggerType.debug,
+      '>>> onChatHistoryUpdated',
+      `pts: ${this._pts.pts}, chatHistory length: ${this._queue.chatHistory.length}`,
+      this._queue.chatHistory
+        .map((item) => `${item.uid}:${item.text}[status: ${item.status}]`)
+        .join('\n')
+    );
+    this.onChatHistoryUpdated?.(this._queue.chatHistory);
+  }
+
+  protected handleTextMessage(uid: string, message: UserTranscription) {
+    const turn_id = message.turn_id;
+    const text = message.text || '';
+    const stream_id = message.stream_id;
+    const turn_status = TurnStatus.END;
+
+    const targetChatHistoryItem = this._queue.chatHistory.find(
+      (item) => item.turn_id === turn_id && item.stream_id === stream_id
+    );
+    // if not found, push to chatHistory
+    if (!targetChatHistoryItem) {
+      this.callMessagePrint(
+        ELoggerType.debug,
+        `[Text Mode]`,
+        `[${uid}]`,
+        'new item',
+        message
+      );
+      this._queue.appendChatHistory({
+        turn_id,
+        uid: message.stream_id
+          ? `${CovSubRenderController.self_uid}`
+          : `${uid}`,
+        stream_id,
+        _time: new Date().getTime(),
+        text,
+        status: turn_status,
+        metadata: message,
+      });
+    } else {
+      // if found, update text and status
+      targetChatHistoryItem.text = text;
+      targetChatHistoryItem.status = turn_status;
+      targetChatHistoryItem.metadata = message;
+      targetChatHistoryItem._time = new Date().getTime();
+      this.callMessagePrint(
+        ELoggerType.debug,
+        `[Text Mode]`,
+        `[${uid}]`,
+        targetChatHistoryItem
+      );
+    }
+    this._mutateChatHistory();
+  }
+
+  private _handleTranscriptChunk() {
+    if (!this._transcriptChunk) {
+      this.callMessagePrint(
+        ELoggerType.warn,
+        `[${TranscriptHelperMode.CHUNK} Mode]`,
+        '_handleTranscriptChunk',
+        'missing _transcriptChunk'
+      );
+      return;
+    }
+    const currentIdx = this._transcriptChunk.index;
+    const currentTranscript = this._transcriptChunk.data;
+    const currentMaxLength = currentTranscript.text.length;
+    const uid = this._transcriptChunk.uid;
+
+    const nextIdx =
+      currentIdx + 1 >= currentMaxLength ? currentMaxLength : currentIdx + 1;
+    this._transcriptChunk.index = nextIdx;
+    const validTranscriptString = currentTranscript.text.substring(0, nextIdx);
+    const isValidTranscriptStringEnded =
+      validTranscriptString.length > 0 &&
+      currentTranscript.turn_status !== TurnStatus.IN_PROGRESS &&
+      validTranscriptString.length === currentTranscript.text.length;
+
+    const targetChatHistoryItem = this._queue.chatHistory.find(
+      (item) =>
+        item.turn_id === currentTranscript.turn_id &&
+        item.stream_id === currentTranscript.stream_id
+    );
+    // if not found, push to chatHistory
+    if (!targetChatHistoryItem) {
+      this.callMessagePrint(
+        ELoggerType.debug,
+        `[${TranscriptHelperMode.CHUNK} Mode]`,
+        `[${uid}]`,
+        'new transcriptChunk',
+        this._transcriptChunk
+      );
+      this._queue.appendChatHistory({
+        turn_id: currentTranscript.turn_id,
+        uid: currentTranscript.stream_id
+          ? `${CovSubRenderController.self_uid}`
+          : `${uid}`,
+        stream_id: currentTranscript.stream_id,
+        _time: Date.now(),
+        text: validTranscriptString,
+        status: currentTranscript.turn_status,
+        metadata: currentTranscript,
+      });
+    } else {
+      // if found, update text and status
+      targetChatHistoryItem.text = validTranscriptString;
+      targetChatHistoryItem.status = isValidTranscriptStringEnded
+        ? currentTranscript.turn_status
+        : targetChatHistoryItem.status;
+      targetChatHistoryItem.metadata = currentTranscript;
+      targetChatHistoryItem._time = Date.now();
+      this.callMessagePrint(
+        ELoggerType.debug,
+        `[${TranscriptHelperMode.CHUNK} Mode]`,
+        `[${uid}]`,
+        'update transcriptChunk',
+        targetChatHistoryItem
+      );
+    }
+    this._mutateChatHistory();
+  }
+
+  protected handleChunkTextMessage(uid: string, message: AgentTranscription) {
+    this.callMessagePrint(
+      ELoggerType.debug,
+      `[${TranscriptHelperMode.CHUNK} Mode]`,
+      `[${uid}]`,
+      'new item',
+      message
+    );
+    // 0. check turn_id, teardown interval if new turn
+    if (
+      this._transcriptChunk &&
+      this._transcriptChunk.data.turn_id < message.turn_id
+    ) {
+      this._pts.teardownInterval();
+      // set chathistory items turn_status to ended
+      const lastChatHistory = this._queue.chatHistory.find(
+        (item) =>
+          item.turn_id === this._transcriptChunk?.data.turn_id &&
+          item.uid === uid
+      );
+      if (lastChatHistory) {
+        lastChatHistory.status = TurnStatus.END;
+      }
+      // set _transcriptChunk to null
+      this._transcriptChunk = null;
+    }
+    // 1. update _transcriptChunk
+    this._transcriptChunk = {
+      index: this._transcriptChunk?.index ?? 0,
+      data: message,
+      uid,
+    };
+    // 2. check if interval is set, if not, set it
+    if (!this._pts.intervalRef) {
+      this._pts.setIntervalRef(
+        setInterval(
+          this._handleTranscriptChunk.bind(this),
+          // access interval via pts module (it owns the interval value)
+          DEFAULT_CHUNK_INTERVAL
+        )
+      );
+    }
+  }
+
+  protected handleMessageInterrupt(uid: string, message: MessageInterrupt) {
+    this.callMessagePrint(
+      ELoggerType.debug,
+      '<<< [onInterrupted]',
+      `pts: ${this._pts.pts}, uid: ${uid}`,
+      message
+    );
+    const turn_id = message.turn_id;
+    // workaround: pts < interrupt.start_ms, and interrupt will be ignored
+    const start_ms = Math.min(message.start_ms, this._pts.pts) || message.start_ms;
+    this._queue.interruptQueue({
+      turn_id,
+      start_ms,
+    });
+    // interrupt chunk
+    if (this._transcriptChunk) {
+      this._pts.teardownInterval();
+      // set chathistory items turn_status to ended
+      const lastChatHistory = this._queue.chatHistory.find(
+        (item) =>
+          item.turn_id === this._transcriptChunk?.data.turn_id &&
+          item.uid === uid
+      );
+      if (lastChatHistory) {
+        lastChatHistory.status = TurnStatus.INTERRUPTED;
+      }
+      // set _transcriptChunk to null
+      this._transcriptChunk = null;
+    }
+    this._mutateChatHistory();
+    this.onAgentInterrupted?.(`${uid}`, {
+      turnID: turn_id,
+      timestamp: start_ms,
+    });
+  }
+
+  protected handleMessageMetrics(uid: string, message: MessageMetrics) {
+    // this.callMessagePrint(
+    //   ELoggerType.debug,
+    //   '<<< [onMetrics]',
+    //   `pts: ${this._pts.pts}, uid: ${uid}`,
+    //   message
+    // )
+    const latency_ms = message.latency_ms;
+    const messageModule = message.module;
+    const metric_name = message.metric_name;
+
+    if (!Object.values(ModuleType).includes(messageModule)) {
+      this.callMessagePrint(
+        ELoggerType.warn,
+        'Unknown metric module:',
+        message
+      );
+      return;
+    }
+
+    this.onAgentMetrics?.(`${uid}`, {
+      type: messageModule,
+      name: metric_name,
+      value: latency_ms,
+      timestamp: message.send_ts,
+    });
+  }
+
+  protected handleMessageSalStatus(uid: string, message: MessageSalStatusData) {
+    this.callMessagePrint(ELoggerType.debug, 'handleMessageSalStatus', message);
+    this.onMessageSalStatus?.(`${uid}`, message);
+  }
+
+  protected handleMessageError(uid: string, message: MessageError) {
+    // this.callMessagePrint(
+    //   ELoggerType.debug,
+    //   '<<< [onError]',
+    //   `pts: ${this._pts.pts}, uid: ${uid}`,
+    //   message
+    // )
+    const errorCode = message.code || -1;
+    const errorMessage = message.message;
+    const messageModule = message.module;
+
+    if (!Object.values(ModuleType).includes(messageModule)) {
+      this.callMessagePrint(ELoggerType.warn, 'Unknown error module:', message);
+      return;
+    }
+
+    if (messageModule === ModuleType.CONTEXT) {
+      try {
+        const messageData = JSON.parse(errorMessage);
+        const errorPayload = {
+          type:
+            messageData?.module === 'picture'
+              ? ChatMessageType.IMAGE
+              : ChatMessageType.UNKNOWN,
+          code: errorCode,
+          message: errorMessage,
+          timestamp: (message?.send_ts as number) || Date.now(),
+        };
+        this.onMessageError?.(`${uid}`, errorPayload);
+      } catch (error: unknown) {
+        this.callMessagePrint(
+          ELoggerType.error,
+          'Failed to parse context error message',
+          error,
+          message
+        );
+      }
+    }
+
+    this.onAgentError?.(`${uid}`, {
+      type: messageModule,
+      code: errorCode,
+      message: errorMessage,
+      timestamp: (message?.send_ts as number) || Date.now(),
+    });
+  }
+
+  // current only used for image messages
+  protected handleMessageInfo(uid: string, message: Record<string, unknown>) {
+    try {
+      const messageStr = (message?.message as string) || '';
+      const messageObj = JSON.parse(messageStr);
+      const moduleType = message?.module as ModuleType;
+      const turnId = message?.turn_id as number;
+      if (!messageStr || !messageObj || !moduleType || !turnId) {
+        this.callMessagePrint(
+          ELoggerType.error,
+          'handleMessageInfo',
+          'Invalid message object',
+          message
+        );
+        return;
+      }
+      const messageType =
+        message?.resource_type === 'picture'
+          ? ChatMessageType.IMAGE
+          : ChatMessageType.UNKNOWN;
+      this.onMessageReceipt?.(uid, {
+        moduleType,
+        messageType,
+        message: messageStr,
+        turnId,
+      });
+    } catch (error: unknown) {
+      this.callMessagePrint(
+        ELoggerType.debug,
+        'handleMessageInfo',
+        'Failed to parse message string from image info message',
+        error,
+        message
+      );
+    }
+  }
+
+  public handleAgentStatus(metadata: PresenceState) {
+    // this.callMessagePrint(
+    //   ELoggerType.debug,
+    //   'handleAgentStatus',
+    //   `pts: ${this._pts.pts}, uid: ${metadata.publisher}`,
+    //   `prev-state: ${this._agentMessageState}, state: ${metadata.stateChanged.state}, turn_id: ${metadata.stateChanged.turn_id}, timestamp: ${metadata.stateChanged.timestamp}`
+    // )
+    const message = metadata.stateChanged;
+    const currentTurnId = Number(message.turn_id) || 0;
+    if (Number(this._agentMessageState?.turn_id ?? 0) > currentTurnId) {
+      this.callMessagePrint(
+        ELoggerType.debug,
+        'handleAgentStatus',
+        'ignore older message(turn_id)'
+      );
+      return;
+    }
+    // check if message is older(by timestamp) than previous one, if so, skip
+    const currentMsgTs = metadata.timestamp;
+    if (Number(this._agentMessageState?.timestamp ?? 0) >= currentMsgTs) {
+      // console.debug(
+      //   CONSOLE_LOG_PREFIX,
+      //   'handleAgentStatus',
+      //   'ignore older message(timestamp)',
+      //   message?.timestamp,
+      //   currentMsgTs
+      // )
+      this.callMessagePrint(
+        ELoggerType.debug,
+        'handleAgentStatus',
+        'ignore older message(timestamp)'
+      );
+      return;
+    }
+    this.callMessagePrint(
+      ELoggerType.debug,
+      '>>> handleAgentStatus',
+      `pts: ${this._pts.pts}, uid: ${metadata.publisher}`,
+      `prev-state: ${this._agentMessageState?.state}, prev-turn_id: ${this._agentMessageState?.turn_id}, prev-timestamp: ${this._agentMessageState?.timestamp}`,
+      `current-state: ${metadata.stateChanged.state}, turn_id: ${metadata.stateChanged.turn_id}, timestamp: ${metadata.timestamp}`
+    );
+    // set current message state
+    this._agentMessageState = {
+      state: message.state,
+      turn_id: message.turn_id,
+      timestamp: currentMsgTs,
+    };
+    this.onAgentStateChanged?.(metadata.publisher, {
+      state: message.state,
+      turnID: Number(message.turn_id),
+      timestamp: currentMsgTs,
+      reason: '',
+    });
+  }
+
+  protected handleWordAgentMessage(uid: string, message: AgentTranscription) {
+    // drop message if turn_status is undefined
+    if (typeof message.turn_status === 'undefined') {
+      this.callMessagePrint(
+        ELoggerType.debug,
+        `[Word Mode]`,
+        `[${uid}]`,
+        'Drop message with undefined turn_status',
+        message.turn_id
+      );
+      return;
+    }
+
+    const turn_id = message.turn_id;
+    const text = message.text || '';
+    const words = message.words || [];
+    const stream_id = message.stream_id;
+    const lastPoppedQueueItemTurnId = this._queue.lastPoppedQueueItem?.turn_id;
+    // drop message if turn_id is less than last popped queue item
+    // except for the first turn(greeting message, turn_id is 0)
+    if (
+      lastPoppedQueueItemTurnId &&
+      turn_id !== 0 &&
+      turn_id <= lastPoppedQueueItemTurnId
+    ) {
+      this.callMessagePrint(
+        ELoggerType.debug,
+        `[Word Mode]`,
+        `[${uid}]`,
+        'Drop message with turn_id less than last popped queue item',
+        `turn_id: ${turn_id}, last popped queue item turn_id: ${lastPoppedQueueItemTurnId}`
+      );
+      return;
+    }
+    this._queue.pushToQueue({
+      uid: message.stream_id ? `${CovSubRenderController.self_uid}` : `${uid}`,
+      turn_id,
+      words,
+      text,
+      status: message.turn_status,
+      stream_id,
+    });
+  }
+
+  public setMode(mode: TranscriptHelperMode) {
+    // Allow setting from UNKNOWN (initial) or AUTO (transitioning to detected mode).
+    // Any other existing mode is considered already locked.
+    if (
+      this._mode !== TranscriptHelperMode.UNKNOWN &&
+      this._mode !== TranscriptHelperMode.AUTO
+    ) {
+      this.callMessagePrint(
+        ELoggerType.warn,
+        `Mode should only be set once, but it is set[${mode}] again`,
+        'current mode:',
+        this._mode
+      );
+      return;
+    }
+    if (mode === TranscriptHelperMode.UNKNOWN) {
+      this.callMessagePrint(ELoggerType.warn, 'Unknown mode should not be set');
+      return;
+    }
+    if (mode === TranscriptHelperMode.CHUNK) {
+      // set interval to chunk interval
+      this._pts.setInterval(DEFAULT_CHUNK_INTERVAL);
+    } else if (mode !== TranscriptHelperMode.AUTO) {
+      // set interval to default interval (not needed for AUTO — interval starts lazily)
+      this._pts.setInterval(DEFAULT_INTERVAL);
+    }
+    this.callMessagePrint(ELoggerType.debug, `setMode`, mode);
+    this._mode = mode;
+  }
+
+  public handleMessage<T extends TranscriptionBase>(
+    message: T,
+    options: {
+      publisher: RTMEvents.MessageEvent['publisher'];
+    }
+  ) {
+    const messageObject = message?.object;
+    if (!Object.values(MessageType).includes(messageObject)) {
+      this.callMessagePrint(
+        ELoggerType.info,
+        `<<< [unknown message]`,
+        options,
+        message
+      );
+      return;
+    }
+
+    const isAgentMessage = message.object === MessageType.AGENT_TRANSCRIPTION;
+    const isUserMessage = message.object === MessageType.USER_TRANSCRIPTION;
+    const isMessageInterrupt = message.object === MessageType.MSG_INTERRUPTED;
+    const isMessageMetrics = message.object === MessageType.MSG_METRICS;
+    const isMessageError = message.object === MessageType.MSG_ERROR;
+    // const isMessageState = message.object === MessageType.MSG_STATE
+    const isMessageInfo = message.object === MessageType.MESSAGE_INFO;
+    const isMessageSalStatus =
+      message.object === MessageType.MESSAGE_SAL_STATUS;
+
+    // set mode (only once) — handles UNKNOWN (not explicitly set) and AUTO (consumer-requested detection)
+    if (
+      isAgentMessage &&
+      (this._mode === TranscriptHelperMode.UNKNOWN ||
+        this._mode === TranscriptHelperMode.AUTO)
+    ) {
+      // detect from first agent message: empty/absent words → TEXT, populated words → WORD
+      if (
+        !message.words ||
+        (Array.isArray(message.words) && message.words.length === 0)
+      ) {
+        this.setMode(TranscriptHelperMode.TEXT);
+      } else {
+        this._pts.setupIntervalForWords({ isForce: true });
+        this.setMode(TranscriptHelperMode.WORD);
+      }
+    }
+
+    // handle Agent Message
+    if (isAgentMessage && this._mode === TranscriptHelperMode.WORD) {
+      this._pts.setupIntervalForWords({ isForce: false });
+      this.handleWordAgentMessage(
+        options.publisher,
+        message as unknown as AgentTranscription
+      );
+      return;
+    }
+    if (isAgentMessage && this._mode === TranscriptHelperMode.TEXT) {
+      this.handleTextMessage(
+        options.publisher,
+        message as unknown as UserTranscription
+      );
+      return;
+    }
+    if (isAgentMessage && this._mode === TranscriptHelperMode.CHUNK) {
+      this.handleChunkTextMessage(
+        options.publisher,
+        message as unknown as AgentTranscription
+      );
+      return;
+    }
+    // handle User Message
+    if (isUserMessage) {
+      this.handleTextMessage(
+        options.publisher,
+        message as unknown as UserTranscription
+      );
+      return;
+    }
+    // handle Message Interrupt
+    if (isMessageInterrupt) {
+      this.handleMessageInterrupt(
+        options.publisher,
+        message as unknown as MessageInterrupt
+      );
+      return;
+    }
+    // if (isMessageState) {
+    //   this.handleAgentStatus(message as unknown as IMessageState)
+    //   return
+    // }
+    if (isMessageInfo) {
+      this.handleMessageInfo(
+        options.publisher,
+        message as unknown as Record<string, unknown>
+      );
+      return;
+    }
+    if (isMessageMetrics) {
+      this.handleMessageMetrics(
+        options.publisher,
+        message as unknown as MessageMetrics
+      );
+      return;
+    }
+    if (isMessageError) {
+      this.handleMessageError(
+        options.publisher,
+        message as unknown as MessageError
+      );
+      return;
+    }
+
+    if (isMessageSalStatus) {
+      this.handleMessageSalStatus(options.publisher, message as unknown as any);
+      return;
+    }
+  }
+
+  public run() {
+    this._pts.setRunning(true);
+  }
+
+  public setPts(pts: number) {
+    this._pts.setPts(pts);
+  }
+
+  public cleanup() {
+    // console.debug(CONSOLE_LOG_PREFIX, 'Cleanup message service')
+    this.callMessagePrint(ELoggerType.debug, 'cleanup');
+    this._pts.reset();
+    // cleanup queue
+    this._queue.reset();
+    // cleanup mode
+    this._mode = TranscriptHelperMode.UNKNOWN;
+    this._agentMessageState = null;
+    this._transcriptChunk = null;
+  }
+}
