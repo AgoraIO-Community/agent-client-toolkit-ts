@@ -34,21 +34,31 @@ export function useAgentMetrics(): UseAgentMetricsReturn {
   const [agentUserId, setAgentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let ai: AgoraVoiceAI;
-    try {
-      ai = AgoraVoiceAI.getInstance();
-    } catch {
-      return;
-    }
+    let cleanup: (() => void) | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const handler = (userId: string, m: AgentMetric) => {
       setMetrics(m);
       setAgentUserId(userId);
     };
 
-    ai.on(AgoraVoiceAIEvents.AGENT_METRICS, handler);
+    const tryConnect = () => {
+      try {
+        const ai = AgoraVoiceAI.getInstance();
+        ai.on(AgoraVoiceAIEvents.AGENT_METRICS, handler);
+        cleanup = () => {
+          try { ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handler); } catch { /* destroyed */ }
+        };
+      } catch {
+        retryTimer = setTimeout(tryConnect, 100);
+      }
+    };
+
+    tryConnect();
+
     return () => {
-      ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handler);
+      if (retryTimer) clearTimeout(retryTimer);
+      cleanup?.();
     };
   }, []);
 

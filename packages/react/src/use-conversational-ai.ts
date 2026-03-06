@@ -109,7 +109,7 @@ export function useConversationalAI(
       }
     }
     configRef.current = config;
-  });
+  }, [config]);
 
   const [transcript, setTranscript] = useState<
     TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[]
@@ -161,17 +161,16 @@ export function useConversationalAI(
         });
 
         if (cancelled) {
-          // Component unmounted before init resolved — clean up without
-          // touching React state (component is gone).
-          ai.unsubscribe();
-          // Only destroy if this instance is still the active singleton.
-          // In StrictMode, the second mount may have already replaced it.
+          // Component unmounted before init resolved — only tear down if
+          // this effect's instance is still the active singleton. In
+          // StrictMode, the second mount may have already replaced it.
           try {
             if (AgoraVoiceAI.getInstance() === ai) {
+              ai.unsubscribe();
               ai.destroy();
             }
           } catch {
-            // getInstance() throws if already destroyed — safe to ignore
+            // getInstance() throws if already destroyed — nothing to clean up
           }
           return;
         }
@@ -205,23 +204,20 @@ export function useConversationalAI(
       cancelled = true;
       const ai = aiRef.current;
       if (ai) {
-        // unsubscribe + destroy also calls removeAllEventListeners internally,
-        // but explicitly removing handlers ensures correctness in StrictMode.
-        ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, handleTranscript);
-        ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handleStateChange);
-        ai.off(AgoraVoiceAIEvents.AGENT_ERROR, handleError);
-        ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handleMetrics);
-        ai.off(AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED, handleReceipt);
-
-        ai.unsubscribe();
-        // Only destroy if this effect's instance is still the active singleton.
-        // In StrictMode, the second mount may have already replaced it.
+        // Only tear down if this effect's instance is still the active
+        // singleton. In StrictMode, the second mount may have already replaced it.
         try {
           if (AgoraVoiceAI.getInstance() === ai) {
+            ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, handleTranscript);
+            ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handleStateChange);
+            ai.off(AgoraVoiceAIEvents.AGENT_ERROR, handleError);
+            ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handleMetrics);
+            ai.off(AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED, handleReceipt);
+            ai.unsubscribe();
             ai.destroy();
           }
         } catch {
-          // getInstance() throws if already destroyed — safe to ignore
+          // getInstance() throws if already destroyed — nothing to clean up
         }
         aiRef.current = null;
       }

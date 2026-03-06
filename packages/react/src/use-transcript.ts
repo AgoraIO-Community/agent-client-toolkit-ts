@@ -29,17 +29,26 @@ export function useTranscript(): TranscriptHelperItem<
   >([]);
 
   useEffect(() => {
-    let ai: AgoraVoiceAI;
-    try {
-      ai = AgoraVoiceAI.getInstance();
-    } catch {
-      // AgoraVoiceAI not yet initialized — transcript stays empty.
-      return;
-    }
+    let cleanup: (() => void) | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
+    const tryConnect = () => {
+      try {
+        const ai = AgoraVoiceAI.getInstance();
+        ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
+        cleanup = () => {
+          try { ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript); } catch { /* destroyed */ }
+        };
+      } catch {
+        retryTimer = setTimeout(tryConnect, 100);
+      }
+    };
+
+    tryConnect();
+
     return () => {
-      ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
+      if (retryTimer) clearTimeout(retryTimer);
+      cleanup?.();
     };
   }, []);
 

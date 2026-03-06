@@ -38,12 +38,8 @@ export function useAgentState(): UseAgentStateReturn {
   const [agentUserId, setAgentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let ai: AgoraVoiceAI;
-    try {
-      ai = AgoraVoiceAI.getInstance();
-    } catch {
-      return;
-    }
+    let cleanup: (() => void) | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const handler = (userId: string, event: StateChangeEvent) => {
       setAgentState(event.state);
@@ -51,9 +47,23 @@ export function useAgentState(): UseAgentStateReturn {
       setAgentUserId(userId);
     };
 
-    ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
+    const tryConnect = () => {
+      try {
+        const ai = AgoraVoiceAI.getInstance();
+        ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
+        cleanup = () => {
+          try { ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler); } catch { /* destroyed */ }
+        };
+      } catch {
+        retryTimer = setTimeout(tryConnect, 100);
+      }
+    };
+
+    tryConnect();
+
     return () => {
-      ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
+      if (retryTimer) clearTimeout(retryTimer);
+      cleanup?.();
     };
   }, []);
 

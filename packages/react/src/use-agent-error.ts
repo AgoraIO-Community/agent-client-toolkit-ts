@@ -56,12 +56,8 @@ export function useAgentError(): UseAgentErrorReturn {
   const clearError = useCallback(() => setError(null), []);
 
   useEffect(() => {
-    let ai: AgoraVoiceAI;
-    try {
-      ai = AgoraVoiceAI.getInstance();
-    } catch {
-      return;
-    }
+    let cleanup: (() => void) | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const handleAgentError = (agentUserId: string, err: ModuleError) => {
       setError({ source: 'agent', agentUserId, error: err });
@@ -74,11 +70,27 @@ export function useAgentError(): UseAgentErrorReturn {
       setError({ source: 'message', agentUserId, error: err });
     };
 
-    ai.on(AgoraVoiceAIEvents.AGENT_ERROR, handleAgentError);
-    ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, handleMessageError);
+    const tryConnect = () => {
+      try {
+        const ai = AgoraVoiceAI.getInstance();
+        ai.on(AgoraVoiceAIEvents.AGENT_ERROR, handleAgentError);
+        ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, handleMessageError);
+        cleanup = () => {
+          try {
+            ai.off(AgoraVoiceAIEvents.AGENT_ERROR, handleAgentError);
+            ai.off(AgoraVoiceAIEvents.MESSAGE_ERROR, handleMessageError);
+          } catch { /* destroyed */ }
+        };
+      } catch {
+        retryTimer = setTimeout(tryConnect, 100);
+      }
+    };
+
+    tryConnect();
+
     return () => {
-      ai.off(AgoraVoiceAIEvents.AGENT_ERROR, handleAgentError);
-      ai.off(AgoraVoiceAIEvents.MESSAGE_ERROR, handleMessageError);
+      if (retryTimer) clearTimeout(retryTimer);
+      cleanup?.();
     };
   }, []);
 

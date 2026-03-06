@@ -105,7 +105,7 @@ describe('useConversationalAI', () => {
     }
   }
 
-  // --- T6.1: Init + cleanup lifecycle ---
+  // --- Init + cleanup lifecycle ---
   it('calls init with config and rtcEngine, then subscribes to channel', async () => {
     const { unmount } = renderConversationalAI({ channel: 'test-channel' });
 
@@ -137,7 +137,7 @@ describe('useConversationalAI', () => {
     expect(mockDestroy).toHaveBeenCalled();
   });
 
-  // --- T6.2: StrictMode double-invoke ---
+  // --- StrictMode double-invoke ---
   it('does not destroy a newer instance during StrictMode cleanup', async () => {
     const firstInstance = createMockInstance();
     const secondInstance = createMockInstance();
@@ -159,12 +159,14 @@ describe('useConversationalAI', () => {
 
     unmount();
 
-    // The key invariant: first instance's destroy is NOT called
-    // because getInstance() returns secondInstance !== firstInstance
-    // (This validates the StrictMode guard in T2)
+    // The key invariant: first instance's unsubscribe and destroy are NOT
+    // called because getInstance() returns secondInstance !== firstInstance.
+    // Validates that StrictMode cleanup does not destroy a newer singleton.
+    expect(firstInstance.destroy).not.toHaveBeenCalled();
+    expect(firstInstance.unsubscribe).not.toHaveBeenCalled();
   });
 
-  // --- T6.3: Event subscription ---
+  // --- Event subscription ---
   it('subscribes to all 5 events after init', async () => {
     renderConversationalAI({ channel: 'test-channel' });
 
@@ -200,7 +202,7 @@ describe('useConversationalAI', () => {
     expect(result.current.agentState).toBe('speaking');
   });
 
-  // --- T6.4: Error state ---
+  // --- Error state ---
   it('sets error state when init() rejects', async () => {
     mockInit.mockRejectedValue(new Error('RTC client invalid'));
 
@@ -225,7 +227,7 @@ describe('useConversationalAI', () => {
     expect(result.current.error).toEqual(errorPayload);
   });
 
-  // --- T6.5: Channel change ---
+  // --- Channel change ---
   it('re-initializes when config.channel changes', async () => {
     const { rerender } = renderHook(
       ({ channel }: { channel: string }) => {
@@ -252,7 +254,7 @@ describe('useConversationalAI', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  // --- T6.6: Cancelled init (unmount before init resolves) ---
+  // --- Cancelled init (unmount before init resolves) ---
   it('does not set state when unmounted before init resolves', async () => {
     let resolveInit!: (val: unknown) => void;
     mockInit.mockReturnValue(new Promise((resolve) => { resolveInit = resolve; }));
