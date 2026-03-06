@@ -31,7 +31,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
-    "@agora/conversational-ai-toolkit": ">=0.1.0",
+    "@agora/conversational-ai-toolkit": "workspace:*",
     "agora-rtc-react": ">=2.0.0",
     "react": ">=18.0.0"
   },
