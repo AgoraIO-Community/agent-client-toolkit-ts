@@ -55,26 +55,16 @@ export class SubRenderQueue {
     const queueLength = this.queue.length;
     // empty queue, skip
     if (queueLength === 0) {
-      // console.debug(CONSOLE_LOG_PREFIX, 'Queue is empty, skip')
       return;
     }
     // only one item, update chatHistory with queueItem
     if (queueLength === 1) {
-      // console.debug(
-      //   CONSOLE_LOG_PREFIX,
-      //   'Queue has only one item, update chatHistory',
-      //   JSON.stringify(this.queue[0])
-      // )
       const queueItem = this.queue[0];
       this._handleTurnObj(queueItem, curPTS);
       this.mutateChatHistory();
       return;
     }
     if (queueLength > 2) {
-      // console.error(
-      //   CONSOLE_LOG_PREFIX,
-      //   'Queue length is greater than 2, but it should not happen'
-      // )
       this.callMessagePrint(
         ELoggerType.error,
         'Queue length is greater than 2, but it should not happen'
@@ -219,11 +209,6 @@ export class SubRenderQueue {
       `turn_id: ${turn_id}, start_ms: ${start_ms}, correspondingQueueItem: ${correspondingQueueItem}`
     );
     if (!correspondingQueueItem) {
-      // console.debug(
-      //   CONSOLE_LOG_PREFIX,
-      //   'No corresponding queue item found',
-      //   options
-      // )
       return;
     }
     // if correspondingQueueItem exists, update its status to interrupted

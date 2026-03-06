@@ -12,7 +12,7 @@ import type { RTMEvents } from 'agora-rtm';
 /**
  * Transcript modes for the Conversational AI API
  *
- * @since 1.6.0
+ * @since 0.1.0
  */
 export enum TranscriptHelperMode {
   TEXT = 'text',
@@ -64,7 +64,7 @@ export enum RTCCustomEventType {
 /**
  * Module type enumeration for AI capabilities
  *
- * @since 1.6.0
+ * @since 0.1.0
  */
 export enum ModuleType {
   LLM = 'llm',
@@ -194,7 +194,7 @@ export enum TurnStatus {
 /**
  * Agent state enumeration
  *
- * @since 1.6.0
+ * @since 0.1.0
  */
 export enum AgentState {
   IDLE = 'idle',

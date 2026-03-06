@@ -153,7 +153,7 @@ export type { AgoraVoiceAIConfig, RTMConfig };
  * @fires {@link AgoraVoiceAIEvents.MESSAGE_ERROR} When message error occurs
  * @fires {@link AgoraVoiceAIEvents.MESSAGE_SAL_STATUS} When a SAL status update is received
  *
- * @since 1.7.0
+ * @since 0.1.0
  */
 export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   private static NAME = TAG;
@@ -232,7 +232,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    *
    * @returns The singleton instance of AgoraVoiceAI
    * @throws {@link NotFoundError} When AgoraVoiceAI is not initialized
-   * @since 1.6.0
+   * @since 0.1.0
    */
   public static getInstance() {
     if (!AgoraVoiceAI._instance) {
@@ -297,7 +297,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    *
    * @param cfg - Configuration object for initializing the API
    * @returns The initialized instance of AgoraVoiceAI
-   * @since 1.6.0
+   * @since 0.1.0
    */
   public static async init(cfg: AgoraVoiceAIConfig): Promise<AgoraVoiceAI> {
     if (AgoraVoiceAI._initPromise) {
@@ -357,7 +357,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * - Throws error if not initialized
    *
    * @param channel - The channel to subscribe to for messages
-   * @since 1.6.0
+   * @since 0.1.0
    */
   public subscribeMessage(channel: string) {
     this.bindRtcEvents();
@@ -381,7 +381,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * - Must call {@link subscribeMessage} before using this method
    * - Throws error if not initialized
    *
-   * @since 1.6.0
+   * @since 0.1.0
    */
   public unsubscribe() {
     this._clearEventTimeout();
@@ -405,7 +405,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * - Must call {@link unsubscribe} before using this method
    * - Throws error if not initialized
    *
-   * @since 1.6.0
+   * @since 0.1.0
    */
   public destroy() {
     const instance = AgoraVoiceAI._instance; // Direct field access, no throw
@@ -433,7 +433,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * @returns A promise that resolves with the result of sending the message
    * @throws {Error} When an unsupported chat message type is provided
    *
-   * @since 1.7.0
+   * @since 0.1.0
    *
    * @example
    * ```typescript
@@ -484,7 +484,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    *
    * @throws {Error} Throws an error with message "failed to send chat message" if the RTM publish operation fails
    *
-   * @since 1.7.0
+   * @since 0.1.0
    *
    * @example
    * ```typescript
@@ -556,7 +556,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    *
    * @returns Promise that resolves when the image message is successfully sent
    *
-   * @since 1.7.0
+   * @since 0.1.0
    *
    * @example
    * ```typescript
@@ -625,7 +625,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * - Throws error if not initialized or if sending fails
    *
    * @param agentUserId - The user ID of the agent to interrupt
-   * @since 1.6.0
+   * @since 0.1.0
    */
   public async interrupt(agentUserId: string) {
     const traceId = genTraceID();

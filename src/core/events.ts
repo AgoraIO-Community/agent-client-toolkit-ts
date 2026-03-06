@@ -14,7 +14,7 @@ import type {
 /**
  * Event types for the Agora Voice AI
  *
- * @since 1.6.0
+ * @since 0.1.0
  */
 export enum AgoraVoiceAIEvents {
   AGENT_STATE_CHANGED = 'agent-state-changed',
@@ -31,7 +31,7 @@ export enum AgoraVoiceAIEvents {
 /**
  * Event handlers interface for the Agora Voice AI module.
  *
- * @since 1.6.0
+ * @since 0.1.0
  */
 export interface AgoraVoiceAIEventHandlers {
   /**
@@ -111,7 +111,7 @@ export enum EventLogLevel {
 
 type EventHandler<T extends any[]> = (...data: T) => void;
 
-export class EventHelper<T> {
+export class EventHelper<T extends Record<keyof T, (...args: any[]) => void>> {
   private _eventMap: Map<keyof T, EventHandler<any[]>[]> = new Map();
   private _logLevel: EventLogLevel = EventLogLevel.NONE;
   private _maxListeners = 10;
@@ -202,7 +202,7 @@ export class EventHelper<T> {
     }
   }
 
-  emit<Key extends keyof T>(evt: Key, ...args: any[]) {
+  emit<Key extends keyof T>(evt: Key, ...args: Parameters<T[Key]>) {
     const cbs = this._eventMap.get(evt) ?? [];
     for (const cb of cbs) {
       try {

@@ -1,7 +1,5 @@
 import { ELoggerType } from '../utils/debug';
 
-const CONSOLE_LOG_PREFIX = '[CovSubRenderController]';
-
 type CallMessagePrint = (type: ELoggerType, ...args: unknown[]) => void;
 type HandleQueueFn = (curPTS: number) => void;
 
@@ -48,7 +46,6 @@ export class SubRenderPTS {
 
   private _preSetupInterval() {
     if (!this._isRunning) {
-      console.error(CONSOLE_LOG_PREFIX, 'Message service is not running');
       this.callMessagePrint(
         ELoggerType.error,
         '_preSetupInterval',

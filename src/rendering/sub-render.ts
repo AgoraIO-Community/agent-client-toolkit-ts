@@ -152,7 +152,6 @@ export class CovSubRenderController {
   }
 
   private _mutateChatHistory() {
-    // console.debug(CONSOLE_LOG_PREFIX, 'Mutate chatHistory', this._queue.chatHistory)
     this.callMessagePrint(
       ELoggerType.debug,
       '>>> onChatHistoryUpdated',
@@ -358,12 +357,6 @@ export class CovSubRenderController {
   }
 
   protected handleMessageMetrics(uid: string, message: MessageMetrics) {
-    // this.callMessagePrint(
-    //   ELoggerType.debug,
-    //   '<<< [onMetrics]',
-    //   `pts: ${this._pts.pts}, uid: ${uid}`,
-    //   message
-    // )
     const latency_ms = message.latency_ms;
     const messageModule = message.module;
     const metric_name = message.metric_name;
@@ -391,12 +384,6 @@ export class CovSubRenderController {
   }
 
   protected handleMessageError(uid: string, message: MessageError) {
-    // this.callMessagePrint(
-    //   ELoggerType.debug,
-    //   '<<< [onError]',
-    //   `pts: ${this._pts.pts}, uid: ${uid}`,
-    //   message
-    // )
     const errorCode = message.code || -1;
     const errorMessage = message.message;
     const messageModule = message.module;
@@ -475,12 +462,6 @@ export class CovSubRenderController {
   }
 
   public handleAgentStatus(metadata: PresenceState) {
-    // this.callMessagePrint(
-    //   ELoggerType.debug,
-    //   'handleAgentStatus',
-    //   `pts: ${this._pts.pts}, uid: ${metadata.publisher}`,
-    //   `prev-state: ${this._agentMessageState}, state: ${metadata.stateChanged.state}, turn_id: ${metadata.stateChanged.turn_id}, timestamp: ${metadata.stateChanged.timestamp}`
-    // )
     const message = metadata.stateChanged;
     const currentTurnId = Number(message.turn_id) || 0;
     if (Number(this._agentMessageState?.turn_id ?? 0) > currentTurnId) {
@@ -494,13 +475,6 @@ export class CovSubRenderController {
     // check if message is older(by timestamp) than previous one, if so, skip
     const currentMsgTs = metadata.timestamp;
     if (Number(this._agentMessageState?.timestamp ?? 0) >= currentMsgTs) {
-      // console.debug(
-      //   CONSOLE_LOG_PREFIX,
-      //   'handleAgentStatus',
-      //   'ignore older message(timestamp)',
-      //   message?.timestamp,
-      //   currentMsgTs
-      // )
       this.callMessagePrint(
         ELoggerType.debug,
         'handleAgentStatus',
@@ -573,6 +547,10 @@ export class CovSubRenderController {
     });
   }
 
+  /**
+   * Sets the transcript rendering mode. Can only be called once — subsequent
+   * calls after mode is locked (not UNKNOWN or AUTO) are ignored with a warning.
+   */
   public setMode(mode: TranscriptHelperMode) {
     // Allow setting from UNKNOWN (initial) or AUTO (transitioning to detected mode).
     // Any other existing mode is considered already locked.
@@ -582,9 +560,7 @@ export class CovSubRenderController {
     ) {
       this.callMessagePrint(
         ELoggerType.warn,
-        `Mode should only be set once, but it is set[${mode}] again`,
-        'current mode:',
-        this._mode
+        `setMode ignored: mode already locked to ${this._mode}, cannot change to ${mode}`
       );
       return;
     }
@@ -687,10 +663,6 @@ export class CovSubRenderController {
       );
       return;
     }
-    // if (isMessageState) {
-    //   this.handleAgentStatus(message as unknown as IMessageState)
-    //   return
-    // }
     if (isMessageInfo) {
       this.handleMessageInfo(
         options.publisher,
@@ -714,7 +686,7 @@ export class CovSubRenderController {
     }
 
     if (isMessageSalStatus) {
-      this.handleMessageSalStatus(options.publisher, message as unknown as any);
+      this.handleMessageSalStatus(options.publisher, message as unknown as MessageSalStatusData);
       return;
     }
   }
@@ -728,7 +700,6 @@ export class CovSubRenderController {
   }
 
   public cleanup() {
-    // console.debug(CONSOLE_LOG_PREFIX, 'Cleanup message service')
     this.callMessagePrint(ELoggerType.debug, 'cleanup');
     this._pts.reset();
     // cleanup queue
