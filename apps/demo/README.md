@@ -5,7 +5,7 @@ Vanilla TypeScript demo for `@agora/conversational-ai-toolkit`. Shows the comple
 ## Prerequisites
 
 - Node.js 18+
-- pnpm 8+
+- pnpm 9+
 - An [Agora account](https://console.agora.io) with a project (App ID + tokens)
 
 ## Setup
