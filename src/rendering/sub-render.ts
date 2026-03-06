@@ -26,7 +26,6 @@ import { SubRenderPTS } from './sub-render-pts';
 import { SubRenderQueue } from './sub-render-queue';
 
 const TAG = 'CovSubRenderController';
-const CONSOLE_LOG_PREFIX = `[${TAG}]`;
 const SELF_USER_ID = 0;
 
 const DEFAULT_INTERVAL = 200; // milliseconds
@@ -52,6 +51,7 @@ export class CovSubRenderController {
   private callMessagePrint: (type: ELoggerType, ...args: unknown[]) => void;
   public static self_uid = SELF_USER_ID;
 
+  private _enableLog: boolean;
   private _mode: TranscriptHelperMode = TranscriptHelperMode.UNKNOWN;
   private _agentMessageState: {
     state: AgentState;
@@ -105,6 +105,7 @@ export class CovSubRenderController {
     options: {
       messageCacheTimeout?: number;
       interval?: number;
+      enableLog?: boolean;
       onChatHistoryUpdated?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED];
       onAgentStateChanged?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED];
       onAgentInterrupted?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_INTERRUPTED];
@@ -116,10 +117,12 @@ export class CovSubRenderController {
       onMessageSalStatus?: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_SAL_STATUS];
     } = {}
   ) {
+    this._enableLog = options.enableLog ?? false;
     this.callMessagePrint = (
       type: ELoggerType = ELoggerType.debug,
       ...args: unknown[]
     ) => {
+      if (!this._enableLog) return;
       logger[type](formatLog(...args));
       this.onDebugLog?.(`[${type}] ${formatLog(...args)}`);
     };
@@ -172,7 +175,6 @@ export class CovSubRenderController {
     const targetChatHistoryItem = this._queue.chatHistory.find(
       (item) => item.turn_id === turn_id && item.stream_id === stream_id
     );
-    // if not found, push to chatHistory
     if (!targetChatHistoryItem) {
       this.callMessagePrint(
         ELoggerType.debug,
@@ -193,7 +195,6 @@ export class CovSubRenderController {
         metadata: message,
       });
     } else {
-      // if found, update text and status
       targetChatHistoryItem.text = text;
       targetChatHistoryItem.status = turn_status;
       targetChatHistoryItem.metadata = message;
@@ -237,7 +238,6 @@ export class CovSubRenderController {
         item.turn_id === currentTranscript.turn_id &&
         item.stream_id === currentTranscript.stream_id
     );
-    // if not found, push to chatHistory
     if (!targetChatHistoryItem) {
       this.callMessagePrint(
         ELoggerType.debug,
@@ -258,7 +258,6 @@ export class CovSubRenderController {
         metadata: currentTranscript,
       });
     } else {
-      // if found, update text and status
       targetChatHistoryItem.text = validTranscriptString;
       targetChatHistoryItem.status = isValidTranscriptStringEnded
         ? currentTranscript.turn_status
@@ -284,13 +283,12 @@ export class CovSubRenderController {
       'new item',
       message
     );
-    // 0. check turn_id, teardown interval if new turn
+    // New turn detected — finalize the previous chunk's chatHistory entry
     if (
       this._transcriptChunk &&
       this._transcriptChunk.data.turn_id < message.turn_id
     ) {
       this._pts.teardownInterval();
-      // set chathistory items turn_status to ended
       const lastChatHistory = this._queue.chatHistory.find(
         (item) =>
           item.turn_id === this._transcriptChunk?.data.turn_id &&
@@ -299,21 +297,17 @@ export class CovSubRenderController {
       if (lastChatHistory) {
         lastChatHistory.status = TurnStatus.END;
       }
-      // set _transcriptChunk to null
       this._transcriptChunk = null;
     }
-    // 1. update _transcriptChunk
     this._transcriptChunk = {
       index: this._transcriptChunk?.index ?? 0,
       data: message,
       uid,
     };
-    // 2. check if interval is set, if not, set it
     if (!this._pts.intervalRef) {
       this._pts.setIntervalRef(
         setInterval(
           this._handleTranscriptChunk.bind(this),
-          // access interval via pts module (it owns the interval value)
           DEFAULT_CHUNK_INTERVAL
         )
       );
@@ -328,16 +322,15 @@ export class CovSubRenderController {
       message
     );
     const turn_id = message.turn_id;
-    // workaround: pts < interrupt.start_ms, and interrupt will be ignored
+    // Workaround: if current PTS lags behind the interrupt's start_ms, use the
+    // lower value so the interrupt is not silently discarded by the queue.
     const start_ms = Math.min(message.start_ms, this._pts.pts) || message.start_ms;
     this._queue.interruptQueue({
       turn_id,
       start_ms,
     });
-    // interrupt chunk
     if (this._transcriptChunk) {
       this._pts.teardownInterval();
-      // set chathistory items turn_status to ended
       const lastChatHistory = this._queue.chatHistory.find(
         (item) =>
           item.turn_id === this._transcriptChunk?.data.turn_id &&
@@ -346,7 +339,6 @@ export class CovSubRenderController {
       if (lastChatHistory) {
         lastChatHistory.status = TurnStatus.INTERRUPTED;
       }
-      // set _transcriptChunk to null
       this._transcriptChunk = null;
     }
     this._mutateChatHistory();
@@ -414,6 +406,7 @@ export class CovSubRenderController {
           message
         );
       }
+      return;
     }
 
     this.onAgentError?.(`${uid}`, {
@@ -463,8 +456,11 @@ export class CovSubRenderController {
 
   public handleAgentStatus(metadata: PresenceState) {
     const message = metadata.stateChanged;
-    const currentTurnId = Number(message.turn_id) || 0;
-    if (Number(this._agentMessageState?.turn_id ?? 0) > currentTurnId) {
+    const parsedTurnId = Number(message.turn_id);
+    const currentTurnId = Number.isFinite(parsedTurnId) ? parsedTurnId : -1;
+    const lastTurnId = Number(this._agentMessageState?.turn_id ?? -1);
+    const lastTurnIdSafe = Number.isFinite(lastTurnId) ? lastTurnId : -1;
+    if (lastTurnIdSafe > currentTurnId) {
       this.callMessagePrint(
         ELoggerType.debug,
         'handleAgentStatus',
@@ -624,7 +620,6 @@ export class CovSubRenderController {
       }
     }
 
-    // handle Agent Message
     if (isAgentMessage && this._mode === TranscriptHelperMode.WORD) {
       this._pts.setupIntervalForWords({ isForce: false });
       this.handleWordAgentMessage(
@@ -647,7 +642,6 @@ export class CovSubRenderController {
       );
       return;
     }
-    // handle User Message
     if (isUserMessage) {
       this.handleTextMessage(
         options.publisher,
@@ -655,7 +649,6 @@ export class CovSubRenderController {
       );
       return;
     }
-    // handle Message Interrupt
     if (isMessageInterrupt) {
       this.handleMessageInterrupt(
         options.publisher,
