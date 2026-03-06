@@ -65,7 +65,7 @@ const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
 await rtcClient.publish([micTrack]);
 
 // Start receiving AI messages
-await ai.subscribeMessage('CHANNEL');
+ai.subscribeMessage('CHANNEL');
 ```
 
 ### Minimal example (React)

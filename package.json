@@ -4,8 +4,9 @@
   "private": true,
   "description": "Monorepo for Agora Conversational AI Toolkit",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @agora/conversational-ai-toolkit build && pnpm --filter @agora/conversational-ai-toolkit-react build",
     "test": "pnpm --filter @agora/conversational-ai-toolkit test && pnpm --filter @agora/conversational-ai-toolkit-react test",
+    "test:coverage": "pnpm --filter @agora/conversational-ai-toolkit test -- --coverage && pnpm --filter @agora/conversational-ai-toolkit-react test -- --coverage",
     "clean": "pnpm -r clean"
   },
   "keywords": [

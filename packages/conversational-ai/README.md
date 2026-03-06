@@ -82,7 +82,7 @@ The following parameters must be set when starting the AI agent via the Agora RE
 |-------|------|----------|-------------|
 | `rtcEngine` | `IAgoraRTCClient` | Yes | Agora RTC client instance |
 | `rtmConfig` | `{ rtmEngine: RTMClient }` | No | RTM client for text/image messaging and agent interruption |
-| `renderMode` | `TranscriptHelperMode` | No | `TEXT` or `WORD`. If omitted, mode is detected automatically from the first agent message. |
+| `renderMode` | `TranscriptHelperMode` | No | `TEXT`, `WORD`, `CHUNK`, or `AUTO`. If omitted, defaults to `AUTO` — mode is detected from the first agent message. |
 | `enableLog` | `boolean` | No | Enable debug logging (default: `false`) |
 | `enableAgoraMetrics` | `boolean` | No | Load `@agora-js/report` for usage metrics (default: `false`) |
 
@@ -113,6 +113,27 @@ ai.off(event, handler): void
 ```
 
 > **Note:** `AgoraVoiceAI` does not wrap RTC join/publish. Call `rtcClient.join()` and `rtcClient.publish()` directly on your Agora RTC client before calling `ai.subscribeMessage()`.
+
+#### Advanced API
+
+```typescript
+ai.getState(): AgoraVoiceAIState
+// Returns a snapshot of SDK state: { initialized, channel, hasRtm, renderMode, listenerCounts }
+
+ai.setMaxListeners(n: number): AgoraVoiceAI
+// Set the maximum number of listeners per event before a warning is logged.
+// Defaults to 10. Set to 0 to disable the warning.
+
+ai.setLogLevel(level: EventLogLevel): AgoraVoiceAI
+// Set the log verbosity for event lifecycle.
+// EventLogLevel.NONE (default) | EventLogLevel.ERRORS | EventLogLevel.DEBUG
+
+ai.once(event, handler): AgoraVoiceAI
+// Register a one-time handler that is automatically removed after the first invocation.
+
+ai.removeAllEventListeners(): void
+// Remove all registered event handlers. Called internally by destroy().
+```
 
 ### Events
 
@@ -154,8 +175,9 @@ ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (agentUserId, event) => {
 Fires when the agent's current turn is interrupted.
 
 ```typescript
-ai.on(AgoraVoiceAIEvents.AGENT_INTERRUPTED, (payload) => {
-  // payload: { turnID: string, timestamp: number }
+ai.on(AgoraVoiceAIEvents.AGENT_INTERRUPTED, (agentUserId, event) => {
+  // agentUserId: string
+  // event: { turnID: number, timestamp: number }
 });
 ```
 
@@ -192,18 +214,6 @@ ai.on(AgoraVoiceAIEvents.AGENT_ERROR, (agentUserId, error) => {
 
 ---
 
-#### `STREAM_MESSAGE`
-
-Fires when a complete chunked stream message has been assembled. Payload is the decoded JSON object from the stream.
-
-```typescript
-ai.on(AgoraVoiceAIEvents.STREAM_MESSAGE, (payload: unknown) => {
-  // fully assembled — partial chunks never surface here
-});
-```
-
----
-
 #### `MESSAGE_RECEIPT_UPDATED` _(requires `rtmConfig`)_
 
 Fires when a delivery or read receipt is received for a sent message.
@@ -237,8 +247,9 @@ ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, (agentUserId, error) => {
 Fires when the Speech Activity Level (SAL) registration status changes.
 
 ```typescript
-ai.on(AgoraVoiceAIEvents.MESSAGE_SAL_STATUS, (payload) => {
-  // payload: { status: MessageSalStatus, timestamp: number }
+ai.on(AgoraVoiceAIEvents.MESSAGE_SAL_STATUS, (agentUserId, salStatus) => {
+  // agentUserId: string
+  // salStatus: MessageSalStatusData — { status: MessageSalStatus, timestamp: number, ... }
 });
 // MessageSalStatus: VP_DISABLED | VP_UNREGISTER | VP_REGISTERING | VP_REGISTER_SUCCESS | VP_REGISTER_FAIL | VP_REGISTER_DUPLICATE
 ```
@@ -249,7 +260,9 @@ ai.on(AgoraVoiceAIEvents.MESSAGE_SAL_STATUS, (payload) => {
 |-------|----------|
 | `TEXT` | Full-sentence updates, lower frequency |
 | `WORD` | Word-by-word updates using PTS metadata (requires `ENABLE_AUDIO_PTS_METADATA`) |
-| _(omitted)_ | Mode is detected automatically from the first agent message |
+| `CHUNK` | Chunked message assembly mode for stream data |
+| `AUTO` | Mode is detected automatically from the first agent message (default when omitted) |
+| _(omitted)_ | Same as `AUTO` — detected automatically from the first agent message |
 
 ### `ChunkedMessageAssembler`
 

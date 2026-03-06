@@ -27,10 +27,11 @@
     "build:types": "tsc --emitDeclarationOnly --skipLibCheck --outDir dist",
     "test": "vitest run",
     "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
-    "@agora/conversational-ai-toolkit": "workspace:*",
+    "@agora/conversational-ai-toolkit": ">=0.1.0",
     "agora-rtc-react": ">=2.0.0",
     "react": ">=18.0.0"
   },
@@ -43,6 +44,15 @@
     "typescript": "^5.3.3",
     "vitest": "^2.1.9"
   },
+  "keywords": [
+    "agora",
+    "conversational-ai",
+    "react",
+    "hooks",
+    "voice-ai",
+    "real-time",
+    "rtc"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
