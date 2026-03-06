@@ -7,7 +7,7 @@ Thanks for your interest in contributing to the Agora Conversational AI Toolkit.
 ### Prerequisites
 
 - Node.js 18+
-- pnpm 8+ (**required** — do not use npm or yarn)
+- pnpm 9+ (**required** — do not use npm or yarn)
 
 ### Install and build
 
