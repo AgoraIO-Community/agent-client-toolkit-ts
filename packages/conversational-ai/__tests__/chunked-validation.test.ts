@@ -9,7 +9,7 @@ function chunk(msgId: string, partIdx: number | string, partSum: number | string
   return `${msgId}|${partIdx}|${partSum}|${data}`;
 }
 
-describe('ChunkedMessageAssembler validation (PRD-09)', () => {
+describe('ChunkedMessageAssembler validation', () => {
   let assembler: ChunkedMessageAssembler;
 
   beforeEach(() => {

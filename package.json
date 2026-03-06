@@ -22,6 +22,10 @@
     "agora-rtm": "^2.2.1",
     "jszip": "^3.10.1"
   },
+  "packageManager": "pnpm@10.23.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

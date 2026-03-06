@@ -8,6 +8,7 @@ export default defineConfig({
   clean: true,
   external: [
     'react',
+    'react-dom',
     'agora-rtc-react',
     '@agora/conversational-ai-toolkit',
   ],

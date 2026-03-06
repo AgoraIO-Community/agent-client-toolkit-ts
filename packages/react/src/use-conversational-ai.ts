@@ -161,10 +161,18 @@ export function useConversationalAI(
         });
 
         if (cancelled) {
-          // Component unmounted before init resolved — destroy immediately
-          // without touching React state (component is gone).
+          // Component unmounted before init resolved — clean up without
+          // touching React state (component is gone).
           ai.unsubscribe();
-          ai.destroy();
+          // Only destroy if this instance is still the active singleton.
+          // In StrictMode, the second mount may have already replaced it.
+          try {
+            if (AgoraVoiceAI.getInstance() === ai) {
+              ai.destroy();
+            }
+          } catch {
+            // getInstance() throws if already destroyed — safe to ignore
+          }
           return;
         }
 
@@ -206,7 +214,15 @@ export function useConversationalAI(
         ai.off(AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED, handleReceipt);
 
         ai.unsubscribe();
-        ai.destroy();
+        // Only destroy if this effect's instance is still the active singleton.
+        // In StrictMode, the second mount may have already replaced it.
+        try {
+          if (AgoraVoiceAI.getInstance() === ai) {
+            ai.destroy();
+          }
+        } catch {
+          // getInstance() throws if already destroyed — safe to ignore
+        }
         aiRef.current = null;
       }
       setIsConnected(false);

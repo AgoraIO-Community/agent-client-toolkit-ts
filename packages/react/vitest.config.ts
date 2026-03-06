@@ -4,6 +4,15 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 70,
+        branches: 60,
+        functions: 70,
+        statements: 70,
+      },
+    },
   },
   esbuild: {
     jsx: 'automatic',
