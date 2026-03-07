@@ -139,8 +139,21 @@ describe('useConversationalAI', () => {
 
   // --- StrictMode double-invoke ---
   it('does not destroy a newer instance during StrictMode cleanup', async () => {
-    const firstInstance = createMockInstance();
-    const secondInstance = createMockInstance();
+    // Use independent spies so we can distinguish calls per instance
+    const firstDestroy = vi.fn();
+    const firstUnsubscribe = vi.fn();
+    const firstInstance = {
+      ...createMockInstance(),
+      destroy: firstDestroy,
+      unsubscribe: firstUnsubscribe,
+    };
+    const secondDestroy = vi.fn();
+    const secondUnsubscribe = vi.fn();
+    const secondInstance = {
+      ...createMockInstance(),
+      destroy: secondDestroy,
+      unsubscribe: secondUnsubscribe,
+    };
 
     let initCallCount = 0;
     mockInit.mockImplementation(() => {
@@ -162,8 +175,8 @@ describe('useConversationalAI', () => {
     // The key invariant: first instance's unsubscribe and destroy are NOT
     // called because getInstance() returns secondInstance !== firstInstance.
     // Validates that StrictMode cleanup does not destroy a newer singleton.
-    expect(firstInstance.destroy).not.toHaveBeenCalled();
-    expect(firstInstance.unsubscribe).not.toHaveBeenCalled();
+    expect(firstDestroy).not.toHaveBeenCalled();
+    expect(firstUnsubscribe).not.toHaveBeenCalled();
   });
 
   // --- Event subscription ---
