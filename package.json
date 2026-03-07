@@ -1,64 +1,33 @@
 {
   "name": "agora-convo-ai-toolkit",
-  "version": "1.8.0",
-  "description": "Agora Voice AI SDK - A conversational AI API for real-time voice interactions with AI agents using Agora RTC and RTM",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/cjs/index.js"
-      }
-    }
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "sideEffects": false,
-  "engines": {
-    "node": ">=14.0.0"
-  },
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for Agora Conversational AI Toolkit",
   "scripts": {
-    "clean": "rm -rf dist",
-    "build:esm": "tsc --project tsconfig.esm.json",
-    "build:cjs": "tsc --project tsconfig.cjs.json",
-    "build": "npm run clean && npm run build:esm && npm run build:cjs",
-    "prepublishOnly": "npm run build"
+    "build": "pnpm --filter @agora/conversational-ai-toolkit build && pnpm --filter @agora/conversational-ai-toolkit-react build",
+    "test": "pnpm --filter @agora/conversational-ai-toolkit test && pnpm --filter @agora/conversational-ai-toolkit-react test",
+    "test:coverage": "pnpm --filter @agora/conversational-ai-toolkit test -- --coverage && pnpm --filter @agora/conversational-ai-toolkit-react test -- --coverage",
+    "clean": "pnpm -r clean"
   },
   "keywords": [
     "agora",
-    "voice-ai",
     "conversational-ai",
     "rtc",
     "rtm",
-    "real-time-communication",
-    "ai-agent",
-    "voice-assistant",
-    "transcription"
+    "voice-assistant"
   ],
   "author": "Agora.io",
-  "license": "MIT",
-  "peerDependencies": {
-    "agora-rtc-sdk-ng": ">=4.23.4",
-    "agora-rtm": ">=2.0.0"
-  },
-  "dependencies": {
-    "@agora-js/report": "^1.0.0",
-    "jszip": "^3.10.1",
-    "lodash": "^4.17.21"
-  },
   "devDependencies": {
-    "@types/lodash": "^4.14.202",
-    "typescript": "^5.3.3"
+    "@agora-js/report": "^4.24.0",
+    "agora-rtc-sdk-ng": "^4.23.4",
+    "agora-rtm": "^2.2.1",
+    "jszip": "^3.10.1"
   },
+  "packageManager": "pnpm@10.23.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit"

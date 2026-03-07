@@ -1,0 +1,27 @@
+{
+  "name": "@agora/conversational-ai-playground",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Component playground for @agora/conversational-ai-toolkit-react",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@agora/conversational-ai-toolkit": "workspace:*",
+    "@agora/conversational-ai-toolkit-react": "workspace:*",
+    "agora-rtc-react": "^2.2.0",
+    "agora-rtc-sdk-ng": "^4.23.4",
+    "agora-rtm": "^2.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.4.0"
+  }
+}
