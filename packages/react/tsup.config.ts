@@ -10,7 +10,7 @@ export default defineConfig({
     'react',
     'react-dom',
     'agora-rtc-react',
-    '@agora/conversational-ai-toolkit',
+    '@agora/agent-client-toolkit',
   ],
   treeshake: true,
 });

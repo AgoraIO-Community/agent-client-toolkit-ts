@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAgentMetrics } from '@agora/conversational-ai-toolkit-react';
-import type { AgentMetric } from '@agora/conversational-ai-toolkit';
+import { useAgentMetrics } from '@agora/agent-client-toolkit-react';
+import type { AgentMetric } from '@agora/agent-client-toolkit';
 
 /**
  * Displays agent metrics in a collapsible table.

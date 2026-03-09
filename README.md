@@ -6,12 +6,21 @@ A client-side toolkit for adding Agora Conversational AI features to application
 
 ## Install
 
+> **Not yet published to npm.** Install directly from GitHub:
+>
+> ```bash
+> git clone https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts
+> cd agent-client-toolkit-ts && pnpm install && pnpm build
+> ```
+
+Once published:
+
 ```bash
 # Vanilla JS / TypeScript
-npm install @agora/conversational-ai-toolkit
+npm install @agora/agent-client-toolkit
 
 # React
-npm install @agora/conversational-ai-toolkit-react
+npm install @agora/agent-client-toolkit-react
 ```
 
 ## Quick Start
@@ -21,7 +30,7 @@ npm install @agora/conversational-ai-toolkit-react
 ```typescript
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import RTMClient from 'agora-rtm';
-import { AgoraVoiceAI, AgoraVoiceAIEvents } from '@agora/conversational-ai-toolkit';
+import { AgoraVoiceAI, AgoraVoiceAIEvents } from '@agora/agent-client-toolkit-ts';
 
 // --- Your existing Agora RTC + RTM setup ---
 const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
@@ -65,19 +74,31 @@ await ai.interrupt('AGENT_UID');
 
 ```tsx
 import { useMemo } from 'react';
-import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalMicrophoneTrack, usePublish } from 'agora-rtc-react';
+import AgoraRTC, {
+  AgoraRTCProvider,
+  useJoin,
+  useLocalMicrophoneTrack,
+  usePublish,
+} from 'agora-rtc-react';
 import RTMClient from 'agora-rtm';
-import { ConversationalAIProvider, useTranscript, useAgentState } from '@agora/conversational-ai-toolkit-react';
+import {
+  ConversationalAIProvider,
+  useTranscript,
+  useAgentState,
+} from '@agora/agent-client-toolkit-ts-react';
 
 const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 const rtmClient = new RTMClient('APP_ID', 'USER_ID');
 await rtmClient.login({ token: 'RTM_TOKEN' });
 
 function App() {
-  const config = useMemo(() => ({
-    channel: 'my-channel',
-    rtmConfig: { rtmEngine: rtmClient },
-  }), []);
+  const config = useMemo(
+    () => ({
+      channel: 'my-channel',
+      rtmConfig: { rtmEngine: rtmClient },
+    }),
+    []
+  );
 
   return (
     // AgoraRTCProvider and ConversationalAIProvider layer on top of each other
@@ -102,7 +123,11 @@ function VoiceSession() {
   return (
     <div>
       <p>Agent: {agentState ?? 'idle'}</p>
-      <ul>{transcript.map((t) => <li key={t.turn_id}>{t.text}</li>)}</ul>
+      <ul>
+        {transcript.map((t) => (
+          <li key={t.turn_id}>{t.text}</li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -110,10 +135,10 @@ function VoiceSession() {
 
 ## Packages
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| [`@agora/conversational-ai-toolkit`](./packages/conversational-ai/README.md) | 0.1.0 | Core SDK — vanilla JS / TypeScript |
-| [`@agora/conversational-ai-toolkit-react`](./packages/react/README.md) | 0.1.0 | React hooks |
+| Package                                                                      | Version | Description                        |
+| ---------------------------------------------------------------------------- | ------- | ---------------------------------- |
+| [`@agora/agent-client-toolkit`](./packages/conversational-ai/README.md) | 0.1.0   | Core SDK — vanilla JS / TypeScript |
+| [`@agora/agent-client-toolkit-react`](./packages/react/README.md)       | 0.1.0   | React hooks                        |
 
 Full API reference, configuration options, and events are in each package's README.
 
@@ -132,8 +157,8 @@ Three methods require RTM and throw if called without it: `sendText`, `sendImage
 ```
 .
 ├── packages/
-│   ├── conversational-ai/   # @agora/conversational-ai-toolkit
-│   └── react/               # @agora/conversational-ai-toolkit-react
+│   ├── conversational-ai/   # @agora/agent-client-toolkit
+│   └── react/               # @agora/agent-client-toolkit-react
 ├── apps/
 │   ├── demo/                # Vanilla TS demo (Vite)
 │   └── playground/          # Interactive React playground

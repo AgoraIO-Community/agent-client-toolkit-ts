@@ -6,30 +6,24 @@ If you discover a security vulnerability in this project, please report it respo
 
 **Do not open a public issue.**
 
-Instead, use [GitHub's private vulnerability reporting](https://github.com/BenWeekes/skills/security/advisories/new) to submit your report. This ensures the issue can be assessed and addressed before public disclosure.
+Instead, use [GitHub's private vulnerability reporting](https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts/security/advisories/new) to submit your report. This ensures the issue can be assessed and addressed before public disclosure.
 
 For security issues in the broader Agora platform, please follow the reporting process at [https://www.agora.io/en/security](https://www.agora.io/en/security).
 
 ## Scope
 
-This repository contains skill content (Markdown files) that guide AI coding agents.
-Security concerns here typically involve skill content that could cause agents to
-generate insecure code, such as:
+This repository contains a client-side TypeScript SDK for Agora Conversational AI. Security concerns here typically involve:
 
-- Guidance that leads to hardcoded credentials (App ID, Customer Key, Customer Secret,
-  App Certificate, RTC tokens)
-- Patterns that introduce injection vulnerabilities in generated code
-- Instructions that disable authentication (e.g., advising token auth to be disabled
-  in production environments)
-- Advice that bypasses or disables Agora Console security settings
-- Prompt injection patterns: skills that accept user-provided content as context must
-  not include patterns that could be exploited
+- Code patterns that lead to hardcoded credentials (App ID, RTC tokens, RTM tokens)
+- Examples that disable or bypass token authentication in production
+- Patterns that expose App ID or secrets client-side beyond what is required
+- Vulnerabilities in the event or message handling pipeline
 
 ## Secrets Handling
 
-- Never commit API keys, certificates, or customer secrets.
-- Use environment variables in examples.
-- Use placeholder values in documentation.
+- Never commit App IDs, tokens, or certificates.
+- Use environment variables for credentials in demos and examples.
+- Use placeholder values (`APP_ID`, `RTC_TOKEN`, `RTM_TOKEN`) in documentation.
 
 ## Response
 

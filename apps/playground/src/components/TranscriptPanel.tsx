@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { useTranscript } from '@agora/conversational-ai-toolkit-react';
-import { MessageType, TurnStatus } from '@agora/conversational-ai-toolkit';
+import { useTranscript } from '@agora/agent-client-toolkit-react';
+import { MessageType, TurnStatus } from '@agora/agent-client-toolkit';
 
 const STATUS_LABELS: Record<number, string> = {
   [TurnStatus.IN_PROGRESS]: 'IN_PROGRESS',
