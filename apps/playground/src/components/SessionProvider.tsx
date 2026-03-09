@@ -14,12 +14,12 @@ import AgoraRTC from 'agora-rtc-sdk-ng';
 import {
   AgoraVoiceAI,
   AgoraVoiceAIEvents,
+  ChatMessageType,
+  ChatMessagePriority,
+  RTMRequiredError,
   type AgoraVoiceAIState,
 } from '@agora/conversational-ai-toolkit';
-import {
-  useConversationalAI,
-  type UseConversationalAIReturn,
-} from '@agora/conversational-ai-toolkit-react';
+import { ConversationalAIProvider } from '@agora/conversational-ai-toolkit-react';
 import type { Credentials } from './ConfigForm';
 import { StatusBar } from './StatusBar';
 import { TranscriptPanel } from './TranscriptPanel';
@@ -34,12 +34,15 @@ export interface DebugLogEntry {
   data: unknown;
 }
 
-interface SessionContextValue extends UseConversationalAIReturn {
+interface SessionContextValue {
   credentials: Credentials;
   debugLog: DebugLogEntry[];
   sdkState: AgoraVoiceAIState | null;
   clearDebugLog: () => void;
   hasRtm: boolean;
+  isConnected: boolean;
+  sendMessage: (agentUserId: string, text: string) => Promise<void>;
+  interrupt: (agentUserId: string) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -58,9 +61,9 @@ interface Props {
 }
 
 /**
- * Session provider that manages the full RTC/RTM connection lifecycle.
- * Calls useConversationalAI with a useMemo'd config, handles RTC join +
- * audio publish + RTM login, and exposes session context to children.
+ * Session provider that wraps children in ConversationalAIProvider for
+ * React context, then handles the RTC/RTM connection lifecycle and
+ * debug logging in SessionInner.
  */
 export function SessionProvider({
   credentials,
@@ -68,20 +71,6 @@ export function SessionProvider({
   rtmClient,
   onDisconnect,
 }: Props) {
-  const [debugLog, setDebugLog] = useState<DebugLogEntry[]>([]);
-  const [sdkState, setSdkState] = useState<AgoraVoiceAIState | null>(null);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-  const cleanupRef = useRef(false);
-
-  const pushLog = useCallback((event: string, data: unknown) => {
-    setDebugLog((prev) => {
-      const next = [...prev, { timestamp: Date.now(), event, data }];
-      return next.length > 100 ? next.slice(-100) : next;
-    });
-  }, []);
-
-  const clearDebugLog = useCallback(() => setDebugLog([]), []);
-
   const config = useMemo(
     () => ({
       rtmConfig: rtmClient ? { rtmEngine: rtmClient } : undefined,
@@ -97,7 +86,43 @@ export function SessionProvider({
     ]
   );
 
-  const hook = useConversationalAI(config);
+  return (
+    <ConversationalAIProvider config={config}>
+      <SessionInner
+        credentials={credentials}
+        rtcClient={rtcClient}
+        rtmClient={rtmClient}
+        onDisconnect={onDisconnect}
+      />
+    </ConversationalAIProvider>
+  );
+}
+
+/**
+ * Inner session component that handles RTC/RTM connection lifecycle,
+ * debug logging, SDK state polling, and provides SessionContext.
+ * Standalone hooks in children connect via ConversationalAIProvider context.
+ */
+function SessionInner({
+  credentials,
+  rtcClient,
+  rtmClient,
+  onDisconnect,
+}: Props) {
+  const [debugLog, setDebugLog] = useState<DebugLogEntry[]>([]);
+  const [sdkState, setSdkState] = useState<AgoraVoiceAIState | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const cleanupRef = useRef(false);
+
+  const pushLog = useCallback((event: string, data: unknown) => {
+    setDebugLog((prev) => {
+      const next = [...prev, { timestamp: Date.now(), event, data }];
+      return next.length > 100 ? next.slice(-100) : next;
+    });
+  }, []);
+
+  const clearDebugLog = useCallback(() => setDebugLog([]), []);
 
   // RTC join + audio publish + RTM login
   useEffect(() => {
@@ -121,6 +146,7 @@ export function SessionProvider({
 
         localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
         await rtcClient.publish([localAudioTrack]);
+        setIsConnected(true);
       } catch (err) {
         if (!cleanupRef.current) {
           setConnectionError(
@@ -145,6 +171,7 @@ export function SessionProvider({
 
     return () => {
       cleanupRef.current = true;
+      setIsConnected(false);
       rtcClient.off('user-published', handleUserPublished as Parameters<typeof rtcClient.off>[1]);
 
       (async () => {
@@ -166,7 +193,7 @@ export function SessionProvider({
     };
   }, [rtcClient, rtmClient, credentials]);
 
-  // Subscribe to extra events not exposed by the hook (for debug panel)
+  // Subscribe to all events for debug panel
   useEffect(() => {
     let ai: AgoraVoiceAI;
     try {
@@ -215,7 +242,7 @@ export function SessionProvider({
       ai.off(AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED, onReceipt);
       ai.off(AgoraVoiceAIEvents.MESSAGE_ERROR, onMsgError);
     };
-  }, [hook.isConnected, pushLog]);
+  }, [isConnected, pushLog]);
 
   // Poll getState() every 2s
   useEffect(() => {
@@ -226,17 +253,20 @@ export function SessionProvider({
     return () => clearInterval(id);
   }, []);
 
-  const contextValue = useMemo<SessionContextValue>(
-    () => ({
-      ...hook,
-      credentials,
-      debugLog,
-      sdkState,
-      clearDebugLog,
-      hasRtm: !!rtmClient,
-    }),
-    [hook, credentials, debugLog, sdkState, clearDebugLog, rtmClient]
-  );
+  const sendMessage = useCallback(async (agentUserId: string, text: string) => {
+    const ai = AgoraVoiceAI.getInstance();
+    await ai.sendText(agentUserId, {
+      messageType: ChatMessageType.TEXT,
+      priority: ChatMessagePriority.INTERRUPTED,
+      responseInterruptable: true,
+      text,
+    });
+  }, []);
+
+  const interrupt = useCallback(async (agentUserId: string) => {
+    const ai = AgoraVoiceAI.getInstance();
+    await ai.interrupt(agentUserId);
+  }, []);
 
   const handleDisconnect = useCallback(() => {
     try {
@@ -246,6 +276,20 @@ export function SessionProvider({
     }
     onDisconnect();
   }, [onDisconnect]);
+
+  const contextValue = useMemo<SessionContextValue>(
+    () => ({
+      credentials,
+      debugLog,
+      sdkState,
+      clearDebugLog,
+      hasRtm: !!rtmClient,
+      isConnected,
+      sendMessage,
+      interrupt,
+    }),
+    [credentials, debugLog, sdkState, clearDebugLog, rtmClient, isConnected, sendMessage, interrupt]
+  );
 
   return (
     <SessionContext.Provider value={contextValue}>
