@@ -41,7 +41,7 @@ importers:
 
   apps/demo:
     dependencies:
-      '@agora/conversational-ai-toolkit':
+      '@agora/agent-client-toolkit':
         specifier: workspace:*
         version: link:../../packages/conversational-ai
       agora-rtc-sdk-ng:
@@ -60,10 +60,10 @@ importers:
 
   apps/playground:
     dependencies:
-      '@agora/conversational-ai-toolkit':
+      '@agora/agent-client-toolkit':
         specifier: workspace:*
         version: link:../../packages/conversational-ai
-      '@agora/conversational-ai-toolkit-react':
+      '@agora/agent-client-toolkit-react':
         specifier: workspace:*
         version: link:../../packages/react
       agora-rtc-react:
@@ -132,7 +132,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@agora/conversational-ai-toolkit':
+      '@agora/agent-client-toolkit':
         specifier: workspace:*
         version: link:../conversational-ai
       agora-rtc-react:
