@@ -10,8 +10,7 @@ export function ErrorToast() {
 
   if (!error) return null;
 
-  const badge =
-    error.source === 'agent' ? 'Agent Error' : 'Message Error';
+  const badge = error.source === 'agent' ? 'Agent Error' : 'Message Error';
 
   return (
     <div className="pg-toast">

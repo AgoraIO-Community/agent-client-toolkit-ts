@@ -77,7 +77,9 @@ export function useAgentError(): UseAgentErrorReturn {
       try {
         ai.off(AgoraVoiceAIEvents.AGENT_ERROR, handleAgentError);
         ai.off(AgoraVoiceAIEvents.MESSAGE_ERROR, handleMessageError);
-      } catch { /* destroyed */ }
+      } catch {
+        /* destroyed */
+      }
     };
   }, [ai]);
 

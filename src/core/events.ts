@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-function-type */
 import type {
   AgentMetric,
   AgentTranscription,
@@ -38,10 +38,7 @@ export interface AgoraVoiceAIEventHandlers {
    * Fired when the agent state changes via RTM presence event.
    * @remarks Only available when `rtmConfig` is provided to `init()`.
    */
-  [AgoraVoiceAIEvents.AGENT_STATE_CHANGED]: (
-    agentUserId: string,
-    event: StateChangeEvent
-  ) => void;
+  [AgoraVoiceAIEvents.AGENT_STATE_CHANGED]: (agentUserId: string, event: StateChangeEvent) => void;
   [AgoraVoiceAIEvents.AGENT_INTERRUPTED]: (
     agentUserId: string,
     event: {
@@ -49,18 +46,10 @@ export interface AgoraVoiceAIEventHandlers {
       timestamp: number;
     }
   ) => void;
-  [AgoraVoiceAIEvents.AGENT_METRICS]: (
-    agentUserId: string,
-    metrics: AgentMetric
-  ) => void;
-  [AgoraVoiceAIEvents.AGENT_ERROR]: (
-    agentUserId: string,
-    error: ModuleError
-  ) => void;
+  [AgoraVoiceAIEvents.AGENT_METRICS]: (agentUserId: string, metrics: AgentMetric) => void;
+  [AgoraVoiceAIEvents.AGENT_ERROR]: (agentUserId: string, error: ModuleError) => void;
   [AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]: (
-    transcription: TranscriptHelperItem<
-      Partial<UserTranscription | AgentTranscription>
-    >[]
+    transcription: TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[]
   ) => void;
   [AgoraVoiceAIEvents.DEBUG_LOG]: (message: string) => void;
   /**
@@ -170,15 +159,11 @@ export class EventHelper<T extends Record<keyof T, (...args: any[]) => void>> {
     cbs.push(cb as any);
     this._eventMap.set(evt, cbs);
 
-    if (
-      this._maxListeners > 0 &&
-      cbs.length > this._maxListeners &&
-      !this._warnedEvents.has(evt)
-    ) {
+    if (this._maxListeners > 0 && cbs.length > this._maxListeners && !this._warnedEvents.has(evt)) {
       this._warnedEvents.add(evt);
       console.warn(
         `[ConversationalAI] Possible listener leak: ${String(evt)} has ${cbs.length} listeners ` +
-        `(max: ${this._maxListeners}). Use setMaxListeners() to increase if intentional.`
+          `(max: ${this._maxListeners}). Use setMaxListeners() to increase if intentional.`
       );
     }
 

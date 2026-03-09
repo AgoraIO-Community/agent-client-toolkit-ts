@@ -17,15 +17,11 @@ function LogEntry({ entry }: { entry: DebugLogEntry }) {
   const color = EVENT_COLORS[entry.event] ?? '#666';
   return (
     <div className="pg-debug-entry">
-      <span className="pg-debug-time">
-        {new Date(entry.timestamp).toLocaleTimeString()}
-      </span>
+      <span className="pg-debug-time">{new Date(entry.timestamp).toLocaleTimeString()}</span>
       <span className="pg-debug-event" style={{ color }}>
         {entry.event}
       </span>
-      <pre className="pg-debug-data">
-        {JSON.stringify(entry.data, null, 2)}
-      </pre>
+      <pre className="pg-debug-data">{JSON.stringify(entry.data, null, 2)}</pre>
     </div>
   );
 }
@@ -41,10 +37,7 @@ export function DebugPanel() {
 
   return (
     <div className="pg-panel">
-      <button
-        className="pg-panel-toggle"
-        onClick={() => setOpen((v) => !v)}
-      >
+      <button className="pg-panel-toggle" onClick={() => setOpen((v) => !v)}>
         {open ? '[-]' : '[+]'} Debug ({debugLog.length} events)
       </button>
       {open && (
@@ -61,9 +54,7 @@ export function DebugPanel() {
           )}
 
           <div className="pg-debug-log">
-            {debugLog.length === 0 && (
-              <div className="pg-debug-empty">No events yet</div>
-            )}
+            {debugLog.length === 0 && <div className="pg-debug-empty">No events yet</div>}
             {debugLog.map((entry, i) => (
               <LogEntry key={i} entry={entry} />
             ))}

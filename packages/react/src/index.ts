@@ -1,8 +1,5 @@
 export { useConversationalAI, ConversationalAIProvider } from './use-conversational-ai';
-export type {
-  UseConversationalAIConfig,
-  UseConversationalAIReturn,
-} from './use-conversational-ai';
+export type { UseConversationalAIConfig, UseConversationalAIReturn } from './use-conversational-ai';
 
 export { useTranscript } from './use-transcript';
 

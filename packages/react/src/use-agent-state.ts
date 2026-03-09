@@ -46,7 +46,11 @@ export function useAgentState(): UseAgentStateReturn {
 
     ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
     return () => {
-      try { ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler); } catch { /* destroyed */ }
+      try {
+        ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
+      } catch {
+        /* destroyed */
+      }
     };
   }, [ai]);
 

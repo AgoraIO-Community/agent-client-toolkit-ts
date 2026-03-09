@@ -104,6 +104,19 @@ const { transcript, agentState, isConnected, error, interrupt, sendMessage, metr
 
 `config` extends `AgoraVoiceAIConfig` (omitting `rtcEngine`, which comes from the provider) and adds `channel: string`.
 
+**Return values:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `transcript` | `TranscriptHelperItem[]` | Full conversation history. Updates on every `TRANSCRIPT_UPDATED` event. |
+| `agentState` | `AgentState \| null` | Current agent state (`'idle'`, `'listening'`, `'thinking'`, `'speaking'`, `'silent'`). Null until the first event. |
+| `isConnected` | `boolean` | `true` after `subscribeMessage` succeeds. |
+| `error` | `ModuleError \| null` | Most recent error from `AGENT_ERROR`. Null until an error occurs. |
+| `interrupt` | `(agentUserId: string) => Promise<void>` | Send an interrupt signal to the agent. Requires `rtmConfig`. |
+| `sendMessage` | `(agentUserId: string, text: string) => Promise<void>` | Send a text message to the agent. Requires `rtmConfig`. |
+| `metrics` | `AgentMetric \| null` | Latest metric from `AGENT_METRICS` (module type, name, value, timestamp). |
+| `messageReceipt` | `MessageReceipt \| null` | Latest delivery receipt from `MESSAGE_RECEIPT_UPDATED`. |
+
 > **Important:** Only `rtcClient` and `config.channel` are in the effect dependency array. Wrap inline config objects in `useMemo` to avoid unnecessary re-subscribe cycles.
 
 ### `useTranscript()`

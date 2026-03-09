@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  AgoraVoiceAIEvents,
-  type AgentMetric,
-} from '@agora/conversational-ai-toolkit';
+import { AgoraVoiceAIEvents, type AgentMetric } from '@agora/conversational-ai-toolkit';
 import { useAgoraVoiceAIInstance } from './context';
 
 export interface UseAgentMetricsReturn {
@@ -45,7 +42,11 @@ export function useAgentMetrics(): UseAgentMetricsReturn {
 
     ai.on(AgoraVoiceAIEvents.AGENT_METRICS, handler);
     return () => {
-      try { ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handler); } catch { /* destroyed */ }
+      try {
+        ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handler);
+      } catch {
+        /* destroyed */
+      }
     };
   }, [ai]);
 

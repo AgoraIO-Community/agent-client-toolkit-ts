@@ -19,7 +19,7 @@ export function StatusBar() {
   const { credentials, isConnected } = useSession();
 
   const label = agentState ?? 'connecting...';
-  const color = agentState ? STATE_COLORS[agentState] ?? '#888' : '#888';
+  const color = agentState ? (STATE_COLORS[agentState] ?? '#888') : '#888';
 
   return (
     <div className="pg-status-bar">

@@ -82,21 +82,13 @@ export class CovSubRenderController {
   public onAgentInterrupted:
     | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_INTERRUPTED]
     | null = null;
-  public onDebugLog:
-    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.DEBUG_LOG]
-    | null = null;
-  public onAgentMetrics:
-    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_METRICS]
-    | null = null;
-  public onAgentError:
-    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_ERROR]
-    | null = null;
+  public onDebugLog: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.DEBUG_LOG] | null = null;
+  public onAgentMetrics: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_METRICS] | null = null;
+  public onAgentError: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_ERROR] | null = null;
   public onMessageReceipt:
     | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED]
     | null = null;
-  public onMessageError:
-    | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_ERROR]
-    | null = null;
+  public onMessageError: AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_ERROR] | null = null;
   public onMessageSalStatus:
     | AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.MESSAGE_SAL_STATUS]
     | null = null;
@@ -118,25 +110,16 @@ export class CovSubRenderController {
     } = {}
   ) {
     this._enableLog = options.enableLog ?? false;
-    this.callMessagePrint = (
-      type: ELoggerType = ELoggerType.debug,
-      ...args: unknown[]
-    ) => {
+    this.callMessagePrint = (type: ELoggerType = ELoggerType.debug, ...args: unknown[]) => {
       if (!this._enableLog) return;
       logger[type](formatLog(...args));
       this.onDebugLog?.(`[${type}] ${formatLog(...args)}`);
     };
-    this.callMessagePrint(
-      ELoggerType.debug,
-      `${CovSubRenderController.NAME} initialized`
-    );
+    this.callMessagePrint(ELoggerType.debug, `${CovSubRenderController.NAME} initialized`);
 
     const interval = options.interval ?? DEFAULT_INTERVAL;
 
-    this._queue = new SubRenderQueue(
-      this.callMessagePrint,
-      this._mutateChatHistory.bind(this)
-    );
+    this._queue = new SubRenderQueue(this.callMessagePrint, this._mutateChatHistory.bind(this));
     this._pts = new SubRenderPTS(
       interval,
       this.callMessagePrint,
@@ -176,18 +159,10 @@ export class CovSubRenderController {
       (item) => item.turn_id === turn_id && item.stream_id === stream_id
     );
     if (!targetChatHistoryItem) {
-      this.callMessagePrint(
-        ELoggerType.debug,
-        `[Text Mode]`,
-        `[${uid}]`,
-        'new item',
-        message
-      );
+      this.callMessagePrint(ELoggerType.debug, `[Text Mode]`, `[${uid}]`, 'new item', message);
       this._queue.appendChatHistory({
         turn_id,
-        uid: message.stream_id
-          ? `${CovSubRenderController.self_uid}`
-          : `${uid}`,
+        uid: message.stream_id ? `${CovSubRenderController.self_uid}` : `${uid}`,
         stream_id,
         _time: new Date().getTime(),
         text,
@@ -199,12 +174,7 @@ export class CovSubRenderController {
       targetChatHistoryItem.status = turn_status;
       targetChatHistoryItem.metadata = message;
       targetChatHistoryItem._time = new Date().getTime();
-      this.callMessagePrint(
-        ELoggerType.debug,
-        `[Text Mode]`,
-        `[${uid}]`,
-        targetChatHistoryItem
-      );
+      this.callMessagePrint(ELoggerType.debug, `[Text Mode]`, `[${uid}]`, targetChatHistoryItem);
     }
     this._mutateChatHistory();
   }
@@ -224,8 +194,7 @@ export class CovSubRenderController {
     const currentMaxLength = currentTranscript.text.length;
     const uid = this._transcriptChunk.uid;
 
-    const nextIdx =
-      currentIdx + 1 >= currentMaxLength ? currentMaxLength : currentIdx + 1;
+    const nextIdx = currentIdx + 1 >= currentMaxLength ? currentMaxLength : currentIdx + 1;
     this._transcriptChunk.index = nextIdx;
     const validTranscriptString = currentTranscript.text.substring(0, nextIdx);
     const isValidTranscriptStringEnded =
@@ -235,8 +204,7 @@ export class CovSubRenderController {
 
     const targetChatHistoryItem = this._queue.chatHistory.find(
       (item) =>
-        item.turn_id === currentTranscript.turn_id &&
-        item.stream_id === currentTranscript.stream_id
+        item.turn_id === currentTranscript.turn_id && item.stream_id === currentTranscript.stream_id
     );
     if (!targetChatHistoryItem) {
       this.callMessagePrint(
@@ -248,9 +216,7 @@ export class CovSubRenderController {
       );
       this._queue.appendChatHistory({
         turn_id: currentTranscript.turn_id,
-        uid: currentTranscript.stream_id
-          ? `${CovSubRenderController.self_uid}`
-          : `${uid}`,
+        uid: currentTranscript.stream_id ? `${CovSubRenderController.self_uid}` : `${uid}`,
         stream_id: currentTranscript.stream_id,
         _time: Date.now(),
         text: validTranscriptString,
@@ -284,15 +250,10 @@ export class CovSubRenderController {
       message
     );
     // New turn detected — finalize the previous chunk's chatHistory entry
-    if (
-      this._transcriptChunk &&
-      this._transcriptChunk.data.turn_id < message.turn_id
-    ) {
+    if (this._transcriptChunk && this._transcriptChunk.data.turn_id < message.turn_id) {
       this._pts.teardownInterval();
       const lastChatHistory = this._queue.chatHistory.find(
-        (item) =>
-          item.turn_id === this._transcriptChunk?.data.turn_id &&
-          item.uid === uid
+        (item) => item.turn_id === this._transcriptChunk?.data.turn_id && item.uid === uid
       );
       if (lastChatHistory) {
         lastChatHistory.status = TurnStatus.END;
@@ -306,10 +267,7 @@ export class CovSubRenderController {
     };
     if (!this._pts.intervalRef) {
       this._pts.setIntervalRef(
-        setInterval(
-          this._handleTranscriptChunk.bind(this),
-          DEFAULT_CHUNK_INTERVAL
-        )
+        setInterval(this._handleTranscriptChunk.bind(this), DEFAULT_CHUNK_INTERVAL)
       );
     }
   }
@@ -332,9 +290,7 @@ export class CovSubRenderController {
     if (this._transcriptChunk) {
       this._pts.teardownInterval();
       const lastChatHistory = this._queue.chatHistory.find(
-        (item) =>
-          item.turn_id === this._transcriptChunk?.data.turn_id &&
-          item.uid === uid
+        (item) => item.turn_id === this._transcriptChunk?.data.turn_id && item.uid === uid
       );
       if (lastChatHistory) {
         lastChatHistory.status = TurnStatus.INTERRUPTED;
@@ -354,11 +310,7 @@ export class CovSubRenderController {
     const metric_name = message.metric_name;
 
     if (!Object.values(ModuleType).includes(messageModule)) {
-      this.callMessagePrint(
-        ELoggerType.warn,
-        'Unknown metric module:',
-        message
-      );
+      this.callMessagePrint(ELoggerType.warn, 'Unknown metric module:', message);
       return;
     }
 
@@ -389,10 +341,7 @@ export class CovSubRenderController {
       try {
         const messageData = JSON.parse(errorMessage);
         const errorPayload = {
-          type:
-            messageData?.module === 'picture'
-              ? ChatMessageType.IMAGE
-              : ChatMessageType.UNKNOWN,
+          type: messageData?.module === 'picture' ? ChatMessageType.IMAGE : ChatMessageType.UNKNOWN,
           code: errorCode,
           message: errorMessage,
           timestamp: (message?.send_ts as number) || Date.now(),
@@ -434,9 +383,7 @@ export class CovSubRenderController {
         return;
       }
       const messageType =
-        message?.resource_type === 'picture'
-          ? ChatMessageType.IMAGE
-          : ChatMessageType.UNKNOWN;
+        message?.resource_type === 'picture' ? ChatMessageType.IMAGE : ChatMessageType.UNKNOWN;
       this.onMessageReceipt?.(uid, {
         moduleType,
         messageType,
@@ -519,11 +466,7 @@ export class CovSubRenderController {
     const lastPoppedQueueItemTurnId = this._queue.lastPoppedQueueItem?.turn_id;
     // drop message if turn_id is less than last popped queue item
     // except for the first turn(greeting message, turn_id is 0)
-    if (
-      lastPoppedQueueItemTurnId &&
-      turn_id !== 0 &&
-      turn_id <= lastPoppedQueueItemTurnId
-    ) {
+    if (lastPoppedQueueItemTurnId && turn_id !== 0 && turn_id <= lastPoppedQueueItemTurnId) {
       this.callMessagePrint(
         ELoggerType.debug,
         `[Word Mode]`,
@@ -550,10 +493,7 @@ export class CovSubRenderController {
   public setMode(mode: TranscriptHelperMode) {
     // Allow setting from UNKNOWN (initial) or AUTO (transitioning to detected mode).
     // Any other existing mode is considered already locked.
-    if (
-      this._mode !== TranscriptHelperMode.UNKNOWN &&
-      this._mode !== TranscriptHelperMode.AUTO
-    ) {
+    if (this._mode !== TranscriptHelperMode.UNKNOWN && this._mode !== TranscriptHelperMode.AUTO) {
       this.callMessagePrint(
         ELoggerType.warn,
         `setMode ignored: mode already locked to ${this._mode}, cannot change to ${mode}`
@@ -583,12 +523,7 @@ export class CovSubRenderController {
   ) {
     const messageObject = message?.object;
     if (!Object.values(MessageType).includes(messageObject)) {
-      this.callMessagePrint(
-        ELoggerType.info,
-        `<<< [unknown message]`,
-        options,
-        message
-      );
+      this.callMessagePrint(ELoggerType.info, `<<< [unknown message]`, options, message);
       return;
     }
 
@@ -599,20 +534,15 @@ export class CovSubRenderController {
     const isMessageError = message.object === MessageType.MSG_ERROR;
     // const isMessageState = message.object === MessageType.MSG_STATE
     const isMessageInfo = message.object === MessageType.MESSAGE_INFO;
-    const isMessageSalStatus =
-      message.object === MessageType.MESSAGE_SAL_STATUS;
+    const isMessageSalStatus = message.object === MessageType.MESSAGE_SAL_STATUS;
 
     // set mode (only once) — handles UNKNOWN (not explicitly set) and AUTO (consumer-requested detection)
     if (
       isAgentMessage &&
-      (this._mode === TranscriptHelperMode.UNKNOWN ||
-        this._mode === TranscriptHelperMode.AUTO)
+      (this._mode === TranscriptHelperMode.UNKNOWN || this._mode === TranscriptHelperMode.AUTO)
     ) {
       // detect from first agent message: empty/absent words → TEXT, populated words → WORD
-      if (
-        !message.words ||
-        (Array.isArray(message.words) && message.words.length === 0)
-      ) {
+      if (!message.words || (Array.isArray(message.words) && message.words.length === 0)) {
         this.setMode(TranscriptHelperMode.TEXT);
       } else {
         this._pts.setupIntervalForWords({ isForce: true });
@@ -622,59 +552,35 @@ export class CovSubRenderController {
 
     if (isAgentMessage && this._mode === TranscriptHelperMode.WORD) {
       this._pts.setupIntervalForWords({ isForce: false });
-      this.handleWordAgentMessage(
-        options.publisher,
-        message as unknown as AgentTranscription
-      );
+      this.handleWordAgentMessage(options.publisher, message as unknown as AgentTranscription);
       return;
     }
     if (isAgentMessage && this._mode === TranscriptHelperMode.TEXT) {
-      this.handleTextMessage(
-        options.publisher,
-        message as unknown as UserTranscription
-      );
+      this.handleTextMessage(options.publisher, message as unknown as UserTranscription);
       return;
     }
     if (isAgentMessage && this._mode === TranscriptHelperMode.CHUNK) {
-      this.handleChunkTextMessage(
-        options.publisher,
-        message as unknown as AgentTranscription
-      );
+      this.handleChunkTextMessage(options.publisher, message as unknown as AgentTranscription);
       return;
     }
     if (isUserMessage) {
-      this.handleTextMessage(
-        options.publisher,
-        message as unknown as UserTranscription
-      );
+      this.handleTextMessage(options.publisher, message as unknown as UserTranscription);
       return;
     }
     if (isMessageInterrupt) {
-      this.handleMessageInterrupt(
-        options.publisher,
-        message as unknown as MessageInterrupt
-      );
+      this.handleMessageInterrupt(options.publisher, message as unknown as MessageInterrupt);
       return;
     }
     if (isMessageInfo) {
-      this.handleMessageInfo(
-        options.publisher,
-        message as unknown as Record<string, unknown>
-      );
+      this.handleMessageInfo(options.publisher, message as unknown as Record<string, unknown>);
       return;
     }
     if (isMessageMetrics) {
-      this.handleMessageMetrics(
-        options.publisher,
-        message as unknown as MessageMetrics
-      );
+      this.handleMessageMetrics(options.publisher, message as unknown as MessageMetrics);
       return;
     }
     if (isMessageError) {
-      this.handleMessageError(
-        options.publisher,
-        message as unknown as MessageError
-      );
+      this.handleMessageError(options.publisher, message as unknown as MessageError);
       return;
     }
 

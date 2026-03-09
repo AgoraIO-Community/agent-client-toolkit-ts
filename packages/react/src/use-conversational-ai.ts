@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 declare const process: { env?: { NODE_ENV?: string } } | undefined;
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -22,8 +21,7 @@ import {
 } from '@agora/conversational-ai-toolkit';
 import { AgoraVoiceAIContext } from './context';
 
-export interface UseConversationalAIConfig
-  extends Omit<AgoraVoiceAIConfig, 'rtcEngine'> {
+export interface UseConversationalAIConfig extends Omit<AgoraVoiceAIConfig, 'rtcEngine'> {
   /**
    * The Agora channel name to subscribe to.
    * Changing this value triggers a full re-subscribe cycle.
@@ -67,9 +65,7 @@ interface UseConversationalAICoreReturn extends UseConversationalAIReturn {
  * Internal hook containing all lifecycle logic. Used by both the public
  * `useConversationalAI` hook and the `ConversationalAIProvider` component.
  */
-function useConversationalAICore(
-  config: UseConversationalAIConfig
-): UseConversationalAICoreReturn {
+function useConversationalAICore(config: UseConversationalAIConfig): UseConversationalAICoreReturn {
   const rtcClient = useRTCClient();
 
   // Dev-mode warning: detect unstable config objects that cause unnecessary re-init
@@ -85,8 +81,8 @@ function useConversationalAICore(
       if (configRef.current !== config && configRef.current.channel === config.channel) {
         console.warn(
           '[useConversationalAI] Config object changed identity but channel is the same. ' +
-          'Wrap your config in useMemo() to avoid unnecessary re-initialization. ' +
-          'See: https://react.dev/reference/react/useMemo'
+            'Wrap your config in useMemo() to avoid unnecessary re-initialization. ' +
+            'See: https://react.dev/reference/react/useMemo'
         );
       }
     }
@@ -124,11 +120,9 @@ function useConversationalAICore(
     const handleStateChange = (_agentUserId: string, event: StateChangeEvent) =>
       setAgentState(event.state);
 
-    const handleError = (_agentUserId: string, err: ModuleError) =>
-      setError(err);
+    const handleError = (_agentUserId: string, err: ModuleError) => setError(err);
 
-    const handleMetrics = (_agentUserId: string, m: AgentMetric) =>
-      setMetrics(m);
+    const handleMetrics = (_agentUserId: string, m: AgentMetric) => setMetrics(m);
 
     const handleReceipt = (_agentUserId: string, receipt: MessageReceipt) =>
       setMessageReceipt(receipt);
@@ -208,7 +202,6 @@ function useConversationalAICore(
       setAiInstance(null);
       setIsConnected(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rtcClient, config.channel]);
 
   const interrupt = useCallback(async (agentUserId: string) => {
@@ -265,9 +258,7 @@ function useConversationalAICore(
  *   // ...
  * }
  */
-export function useConversationalAI(
-  config: UseConversationalAIConfig
-): UseConversationalAIReturn {
+export function useConversationalAI(config: UseConversationalAIConfig): UseConversationalAIReturn {
   const { aiInstance: _, ...hookReturn } = useConversationalAICore(config);
   return hookReturn;
 }
@@ -304,9 +295,5 @@ export function ConversationalAIProvider({
 }): React.ReactElement {
   const { aiInstance } = useConversationalAICore(config);
 
-  return React.createElement(
-    AgoraVoiceAIContext.Provider,
-    { value: aiInstance },
-    children
-  );
+  return React.createElement(AgoraVoiceAIContext.Provider, { value: aiInstance }, children);
 }

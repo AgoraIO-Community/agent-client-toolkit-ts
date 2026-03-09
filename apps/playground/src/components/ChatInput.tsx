@@ -1,9 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import {
-  AgoraVoiceAI,
-  ChatMessageType,
-  RTMRequiredError,
-} from '@agora/conversational-ai-toolkit';
+import { AgoraVoiceAI, ChatMessageType, RTMRequiredError } from '@agora/conversational-ai-toolkit';
 import { useSession } from './SessionProvider';
 
 /**
@@ -93,11 +89,7 @@ export function ChatInput() {
           placeholder="Image URL..."
           disabled={!hasRtm}
         />
-        <button
-          type="button"
-          onClick={handleSendImage}
-          disabled={!hasRtm || !imageUrl.trim()}
-        >
+        <button type="button" onClick={handleSendImage} disabled={!hasRtm || !imageUrl.trim()}>
           Send Image
         </button>
       </div>

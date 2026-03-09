@@ -25,9 +25,7 @@ export class SubRenderQueue {
 
   public queue: QueueItem[] = [];
   public lastPoppedQueueItem: QueueItem | null | undefined = null;
-  public chatHistory: TranscriptHelperItem<
-    Partial<UserTranscription | AgentTranscription>
-  >[] = [];
+  public chatHistory: TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[] = [];
 
   // Chunk mode state — owned here because it is pending queue content
   public transcriptChunk: {
@@ -39,10 +37,7 @@ export class SubRenderQueue {
   private callMessagePrint: CallMessagePrint;
   private mutateChatHistory: MutateChatHistoryFn;
 
-  constructor(
-    callMessagePrint: CallMessagePrint,
-    mutateChatHistory: MutateChatHistoryFn
-  ) {
+  constructor(callMessagePrint: CallMessagePrint, mutateChatHistory: MutateChatHistoryFn) {
     this.callMessagePrint = callMessagePrint;
     this.mutateChatHistory = mutateChatHistory;
   }
@@ -86,9 +81,7 @@ export class SubRenderQueue {
       }
       // nextItem has started (start_ms <= curPTS) — mark lastItem as interrupted and drop it
       const lastItemCorrespondingChatHistoryItem = this.chatHistory.find(
-        (item) =>
-          item.turn_id === lastItem.turn_id &&
-          item.stream_id === lastItem.stream_id
+        (item) => item.turn_id === lastItem.turn_id && item.stream_id === lastItem.stream_id
       );
       if (!lastItemCorrespondingChatHistoryItem) {
         this.callMessagePrint(
@@ -108,9 +101,7 @@ export class SubRenderQueue {
 
   private _handleTurnObj(queueItem: QueueItem, curPTS: number) {
     let correspondingChatHistoryItem = this.chatHistory.find(
-      (item) =>
-        item.turn_id === queueItem.turn_id &&
-        item.stream_id === queueItem.stream_id
+      (item) => item.turn_id === queueItem.turn_id && item.stream_id === queueItem.stream_id
     );
     this.callMessagePrint(
       ELoggerType.debug,
@@ -198,9 +189,7 @@ export class SubRenderQueue {
   public interruptQueue(options: { turn_id: number; start_ms: number }) {
     const turn_id = options.turn_id;
     const start_ms = options.start_ms;
-    const correspondingQueueItem = this.queue.find(
-      (item) => item.turn_id === turn_id
-    );
+    const correspondingQueueItem = this.queue.find((item) => item.turn_id === turn_id);
     this.callMessagePrint(
       ELoggerType.debug,
       'interruptQueue',
@@ -210,12 +199,8 @@ export class SubRenderQueue {
       return;
     }
     correspondingQueueItem.status = TurnStatus.INTERRUPTED;
-    const leftWords = correspondingQueueItem.words.filter(
-      (word) => word.start_ms <= start_ms
-    );
-    const rightWords = correspondingQueueItem.words.filter(
-      (word) => word.start_ms > start_ms
-    );
+    const leftWords = correspondingQueueItem.words.filter((word) => word.start_ms <= start_ms);
+    const rightWords = correspondingQueueItem.words.filter((word) => word.start_ms > start_ms);
     if (leftWords.length === 0) {
       correspondingQueueItem.words.forEach((word) => {
         word.word_status = TurnStatus.INTERRUPTED;
@@ -242,9 +227,7 @@ export class SubRenderQueue {
     stream_id: number;
     uid: string;
   }) {
-    const targetQueueItem = this.queue.find(
-      (item) => item.turn_id === data.turn_id
-    );
+    const targetQueueItem = this.queue.find((item) => item.turn_id === data.turn_id);
     const latestTurnId = this.queue.reduce((max, item) => {
       return Math.max(max, item.turn_id);
     }, 0);
@@ -305,10 +288,7 @@ export class SubRenderQueue {
    * Sorts words by `start_ms`, deduplicates by `start_ms`, and stamps the
    * final word with `turn_status` when the turn is complete or interrupted.
    */
-  public sortWordsWithStatus(
-    words: DataChunkMessageWord[],
-    turn_status: TurnStatus
-  ) {
+  public sortWordsWithStatus(words: DataChunkMessageWord[], turn_status: TurnStatus) {
     if (words.length === 0) {
       return words;
     }

@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   useCallback,
-  type ReactNode,
 } from 'react';
 import type { IAgoraRTCClient } from 'agora-rtc-sdk-ng';
 import type { RTMClient } from 'agora-rtm';
@@ -16,7 +15,6 @@ import {
   AgoraVoiceAIEvents,
   ChatMessageType,
   ChatMessagePriority,
-  RTMRequiredError,
   type AgoraVoiceAIState,
 } from '@agora/conversational-ai-toolkit';
 import { ConversationalAIProvider } from '@agora/conversational-ai-toolkit-react';
@@ -65,12 +63,7 @@ interface Props {
  * React context, then handles the RTC/RTM connection lifecycle and
  * debug logging in SessionInner.
  */
-export function SessionProvider({
-  credentials,
-  rtcClient,
-  rtmClient,
-  onDisconnect,
-}: Props) {
+export function SessionProvider({ credentials, rtcClient, rtmClient, onDisconnect }: Props) {
   const config = useMemo(
     () => ({
       rtmConfig: rtmClient ? { rtmEngine: rtmClient } : undefined,
@@ -78,12 +71,7 @@ export function SessionProvider({
       enableLog: credentials.enableLog,
       channel: credentials.channelName,
     }),
-    [
-      rtmClient,
-      credentials.renderMode,
-      credentials.enableLog,
-      credentials.channelName,
-    ]
+    [rtmClient, credentials.renderMode, credentials.enableLog, credentials.channelName]
   );
 
   return (
@@ -103,12 +91,7 @@ export function SessionProvider({
  * debug logging, SDK state polling, and provides SessionContext.
  * Standalone hooks in children connect via ConversationalAIProvider context.
  */
-function SessionInner({
-  credentials,
-  rtcClient,
-  rtmClient,
-  onDisconnect,
-}: Props) {
+function SessionInner({ credentials, rtcClient, rtmClient, onDisconnect }: Props) {
   const [debugLog, setDebugLog] = useState<DebugLogEntry[]>([]);
   const [sdkState, setSdkState] = useState<AgoraVoiceAIState | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -127,7 +110,7 @@ function SessionInner({
   // RTC join + audio publish + RTM login
   useEffect(() => {
     cleanupRef.current = false;
-    let localAudioTrack: ReturnType<typeof AgoraRTC.createMicrophoneAudioTrack> extends Promise<infer T> ? T : never;
+    let localAudioTrack: Awaited<ReturnType<typeof AgoraRTC.createMicrophoneAudioTrack>>;
 
     const connect = async () => {
       try {
@@ -149,9 +132,7 @@ function SessionInner({
         setIsConnected(true);
       } catch (err) {
         if (!cleanupRef.current) {
-          setConnectionError(
-            err instanceof Error ? err.message : String(err)
-          );
+          setConnectionError(err instanceof Error ? err.message : String(err));
         }
       }
     };
@@ -204,20 +185,29 @@ function SessionInner({
 
     const onInterrupted = (agentUserId: string, event: unknown) =>
       pushLog('AGENT_INTERRUPTED', { agentUserId, event });
-    const onDebug = (message: string) =>
-      pushLog('DEBUG_LOG', { message });
+
+    const onDebug = (message: string) => pushLog('DEBUG_LOG', { message });
+
     const onSalStatus = (agentUserId: string, status: unknown) =>
       pushLog('MESSAGE_SAL_STATUS', { agentUserId, status });
+
     const onStateChanged = (agentUserId: string, event: unknown) =>
       pushLog('AGENT_STATE_CHANGED', { agentUserId, event });
+
     const onTranscript = (transcripts: unknown) =>
-      pushLog('TRANSCRIPT_UPDATED', { count: Array.isArray(transcripts) ? transcripts.length : 0 });
+      pushLog('TRANSCRIPT_UPDATED', {
+        count: Array.isArray(transcripts) ? transcripts.length : 0,
+      });
+
     const onMetrics = (agentUserId: string, metrics: unknown) =>
       pushLog('AGENT_METRICS', { agentUserId, metrics });
+
     const onAgentError = (agentUserId: string, error: unknown) =>
       pushLog('AGENT_ERROR', { agentUserId, error });
+
     const onReceipt = (agentUserId: string, receipt: unknown) =>
       pushLog('MESSAGE_RECEIPT_UPDATED', { agentUserId, receipt });
+
     const onMsgError = (agentUserId: string, error: unknown) =>
       pushLog('MESSAGE_ERROR', { agentUserId, error });
 

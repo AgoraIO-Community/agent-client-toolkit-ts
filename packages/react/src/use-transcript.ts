@@ -33,7 +33,11 @@ export function useTranscript(): TranscriptHelperItem<
 
     ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
     return () => {
-      try { ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript); } catch { /* destroyed */ }
+      try {
+        ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
+      } catch {
+        /* destroyed */
+      }
     };
   }, [ai]);
 
