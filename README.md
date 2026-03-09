@@ -17,10 +17,10 @@ Once published:
 
 ```bash
 # Vanilla JS / TypeScript
-npm install @agora/agent-client-toolkit
+npm install agora-agent-client-toolkit
 
 # React
-npm install @agora/agent-client-toolkit-react
+npm install agora-agent-client-toolkit-react
 ```
 
 ## Quick Start
@@ -30,7 +30,7 @@ npm install @agora/agent-client-toolkit-react
 ```typescript
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import RTMClient from 'agora-rtm';
-import { AgoraVoiceAI, AgoraVoiceAIEvents } from '@agora/agent-client-toolkit-ts';
+import { AgoraVoiceAI, AgoraVoiceAIEvents } from 'agora-agent-client-toolkit';
 
 // --- Your existing Agora RTC + RTM setup ---
 const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
@@ -85,7 +85,7 @@ import {
   ConversationalAIProvider,
   useTranscript,
   useAgentState,
-} from '@agora/agent-client-toolkit-ts-react';
+} from 'agora-agent-client-toolkit-react';
 
 const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 const rtmClient = new RTMClient('APP_ID', 'USER_ID');
@@ -137,8 +137,8 @@ function VoiceSession() {
 
 | Package                                                                      | Version | Description                        |
 | ---------------------------------------------------------------------------- | ------- | ---------------------------------- |
-| [`@agora/agent-client-toolkit`](./packages/conversational-ai/README.md) | 0.1.0   | Core SDK — vanilla JS / TypeScript |
-| [`@agora/agent-client-toolkit-react`](./packages/react/README.md)       | 0.1.0   | React hooks                        |
+| [`agora-agent-client-toolkit`](./packages/conversational-ai/README.md) | 0.1.0   | Core SDK — vanilla JS / TypeScript |
+| [`agora-agent-client-toolkit-react`](./packages/react/README.md)       | 0.1.0   | React hooks                        |
 
 Full API reference, configuration options, and events are in each package's README.
 
@@ -157,8 +157,8 @@ Three methods require RTM and throw if called without it: `sendText`, `sendImage
 ```
 .
 ├── packages/
-│   ├── conversational-ai/   # @agora/agent-client-toolkit
-│   └── react/               # @agora/agent-client-toolkit-react
+│   ├── conversational-ai/   # agora-agent-client-toolkit
+│   └── react/               # agora-agent-client-toolkit-react
 ├── apps/
 │   ├── demo/                # Vanilla TS demo (Vite)
 │   └── playground/          # Interactive React playground

@@ -3,7 +3,7 @@ import {
   AgoraVoiceAIEvents,
   type ModuleError,
   type ChatMessageType,
-} from '@agora/agent-client-toolkit';
+} from 'agora-agent-client-toolkit';
 import { useAgoraVoiceAIInstance } from './context';
 
 /** Discriminated union for errors from both AGENT_ERROR and MESSAGE_ERROR events. */

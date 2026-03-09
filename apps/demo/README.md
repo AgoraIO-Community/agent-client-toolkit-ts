@@ -1,6 +1,6 @@
 # Conversational AI Demo
 
-Vanilla TypeScript demo for `@agora/agent-client-toolkit`. Shows the complete join → publish → transcript → leave flow using `AgoraRTC.createClient()` directly.
+Vanilla TypeScript demo for `agora-agent-client-toolkit`. Shows the complete join → publish → transcript → leave flow using `AgoraRTC.createClient()` directly.
 
 ## Prerequisites
 
