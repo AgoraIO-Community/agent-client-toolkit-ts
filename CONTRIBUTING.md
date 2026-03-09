@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing to the Agora Conversational AI Toolkit.
+Thanks for your interest in contributing to the Agora Agent Client Toolkit.
 
 ## Development Setup
 
@@ -20,16 +20,16 @@ pnpm -r build
 
 ```bash
 # Core package
-pnpm --filter @agora/conversational-ai-toolkit test
+pnpm --filter @agora/agent-client-toolkit test
 
 # React package
-pnpm --filter @agora/conversational-ai-toolkit-react test
+pnpm --filter @agora/agent-client-toolkit-react test
 ```
 
 ### Run the demo
 
 ```bash
-pnpm --filter @agora/conversational-ai-demo dev
+pnpm --filter @agora/conversational-ai-demo dev  # see apps/demo/README.md
 ```
 
 ## Project Structure
@@ -59,7 +59,7 @@ apps/playground/                  # Interactive playground
 
 1. Create a feature branch from `main` (e.g. `feat/add-new-hook`, `fix/destroy-race`).
 2. Make your changes. Add or update tests as appropriate.
-3. Run `pnpm -r build` and `pnpm --filter @agora/conversational-ai-toolkit test` before pushing.
+3. Run `pnpm -r build` and `pnpm --filter @agora/agent-client-toolkit test` before pushing.
 4. Open a PR with a clear description of what changed and why.
 5. Keep PRs focused — one feature or fix per PR.
 

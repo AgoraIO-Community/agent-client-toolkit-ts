@@ -7,7 +7,7 @@ import { useAgentError } from '../src/use-agent-error';
 import { useAgentMetrics } from '../src/use-agent-metrics';
 import { AgoraVoiceAIContext } from '../src/context';
 
-vi.mock('@agora/conversational-ai-toolkit', () => ({
+vi.mock('@agora/agent-client-toolkit', () => ({
   AgoraVoiceAIEvents: {
     TRANSCRIPT_UPDATED: 'transcript-updated',
     AGENT_STATE_CHANGED: 'agent-state-changed',

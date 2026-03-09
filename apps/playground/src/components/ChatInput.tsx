@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { AgoraVoiceAI, ChatMessageType, RTMRequiredError } from '@agora/conversational-ai-toolkit';
+import { AgoraVoiceAI, ChatMessageType, RTMRequiredError } from '@agora/agent-client-toolkit';
 import { useSession } from './SessionProvider';
 
 /**

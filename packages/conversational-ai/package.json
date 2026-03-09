@@ -1,7 +1,7 @@
 {
-  "name": "@agora/conversational-ai-toolkit",
+  "name": "@agora/agent-client-toolkit",
   "version": "0.1.0",
-  "description": "Agora Conversational AI Toolkit — real-time voice agent integration for web",
+  "description": "Agora Agent Client Toolkit — real-time voice agent integration for web",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -63,10 +63,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit"
+    "url": "https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts"
   },
   "bugs": {
-    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit/issues"
+    "url": "https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts/issues"
   },
-  "homepage": "https://github.com/AgoraIO-Community/convo-ai-toolkit#readme"
+  "homepage": "https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts#readme"
 }

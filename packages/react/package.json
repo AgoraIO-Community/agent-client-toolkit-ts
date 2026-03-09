@@ -1,7 +1,7 @@
 {
-  "name": "@agora/conversational-ai-toolkit-react",
+  "name": "@agora/agent-client-toolkit-react",
   "version": "0.1.0",
-  "description": "React hooks for Agora Conversational AI Toolkit",
+  "description": "React hooks for Agora Agent Client Toolkit",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -31,7 +31,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
-    "@agora/conversational-ai-toolkit": "workspace:*",
+    "@agora/agent-client-toolkit": "workspace:*",
     "agora-rtc-react": ">=2.0.0",
     "react": ">=18.0.0"
   },
@@ -56,6 +56,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AgoraIO-Community/convo-ai-toolkit"
+    "url": "https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts"
   }
 }

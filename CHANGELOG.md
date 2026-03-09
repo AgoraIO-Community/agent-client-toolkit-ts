@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 Initial public release.
 
-### @agora/conversational-ai-toolkit
+### @agora/agent-client-toolkit
 
 - `AgoraVoiceAI` singleton with async `init()` — **breaking change** from pre-release versions (init was previously synchronous)
 - Event system: `TRANSCRIPT_UPDATED`, `AGENT_STATE_CHANGED`, `AGENT_ERROR`, `AGENT_METRICS`, `AGENT_INTERRUPTED`, `MESSAGE_ERROR`, `MESSAGE_RECEIPT_UPDATED`, `MESSAGE_SAL_STATUS`, `STREAM_MESSAGE`
@@ -19,7 +19,7 @@ Initial public release.
 - Optional Agora metrics via `enableAgoraMetrics: true` (requires `@agora-js/report`)
 - Zero required runtime dependencies
 
-### @agora/conversational-ai-toolkit-react
+### @agora/agent-client-toolkit-react
 
 - `useConversationalAI` — flagship lifecycle hook (init, subscribe, destroy)
 - `useTranscript` — standalone transcript observer

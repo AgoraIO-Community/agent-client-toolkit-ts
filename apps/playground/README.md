@@ -1,6 +1,6 @@
 # Conversational AI Playground
 
-Interactive React playground for `@agora/conversational-ai-toolkit-react`. Demonstrates all 5 React hooks in a realistic component tree with feature parity to the vanilla `demo.ts`.
+Interactive React playground for `@agora/agent-client-toolkit-react`. Demonstrates all 5 React hooks in a realistic component tree with feature parity to the vanilla `demo.ts`.
 
 ## Setup
 
@@ -79,7 +79,7 @@ App
 
 | Package | Role |
 |---------|------|
-| `@agora/conversational-ai-toolkit` | Core SDK — singleton, events, transcript rendering |
-| `@agora/conversational-ai-toolkit-react` | React hooks wrapping the core SDK |
+| `@agora/agent-client-toolkit` | Core SDK — singleton, events, transcript rendering |
+| `@agora/agent-client-toolkit-react` | React hooks wrapping the core SDK |
 | `@agora/conversational-ai-playground` | **This app** — consumes both packages for development |
 | `@agora/conversational-ai-demo` | Minimal vanilla TS demo (no React) |

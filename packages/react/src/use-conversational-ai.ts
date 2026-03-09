@@ -18,7 +18,7 @@ import {
   type AgentMetric,
   type ModuleError,
   type MessageReceipt,
-} from '@agora/conversational-ai-toolkit';
+} from '@agora/agent-client-toolkit';
 import { AgoraVoiceAIContext } from './context';
 
 export interface UseConversationalAIConfig extends Omit<AgoraVoiceAIConfig, 'rtcEngine'> {

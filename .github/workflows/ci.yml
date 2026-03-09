@@ -32,16 +32,16 @@ jobs:
         run: pnpm format:check
 
       - name: Build core
-        run: pnpm --filter @agora/conversational-ai-toolkit build
+        run: pnpm --filter @agora/agent-client-toolkit build
 
       - name: Build React
-        run: pnpm --filter @agora/conversational-ai-toolkit-react build
+        run: pnpm --filter @agora/agent-client-toolkit-react build
 
       - name: Typecheck core
-        run: pnpm --filter @agora/conversational-ai-toolkit typecheck
+        run: pnpm --filter @agora/agent-client-toolkit typecheck
 
       - name: Test core
-        run: pnpm --filter @agora/conversational-ai-toolkit test
+        run: pnpm --filter @agora/agent-client-toolkit test
 
       - name: Test React
-        run: pnpm --filter @agora/conversational-ai-toolkit-react test
+        run: pnpm --filter @agora/agent-client-toolkit-react test

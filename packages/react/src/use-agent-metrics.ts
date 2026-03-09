@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AgoraVoiceAIEvents, type AgentMetric } from '@agora/conversational-ai-toolkit';
+import { AgoraVoiceAIEvents, type AgentMetric } from '@agora/agent-client-toolkit';
 import { useAgoraVoiceAIInstance } from './context';
 
 export interface UseAgentMetricsReturn {
