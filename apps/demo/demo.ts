@@ -98,11 +98,21 @@ function registerListeners(voiceAI: AgoraVoiceAI) {
   voiceAI.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (agentUserId, event) => {
     console.log(`🤖 Agent ${agentUserId} state changed:`, event.state);
     switch (event.state) {
-      case AgentState.IDLE:       console.log('  Agent is idle'); break;
-      case AgentState.LISTENING:  console.log('  Agent is listening...'); break;
-      case AgentState.THINKING:   console.log('  Agent is thinking...'); break;
-      case AgentState.SPEAKING:   console.log('  Agent is speaking...'); break;
-      case AgentState.SILENT:     console.log('  Agent is silent'); break;
+      case AgentState.IDLE:
+        console.log('  Agent is idle');
+        break;
+      case AgentState.LISTENING:
+        console.log('  Agent is listening...');
+        break;
+      case AgentState.THINKING:
+        console.log('  Agent is thinking...');
+        break;
+      case AgentState.SPEAKING:
+        console.log('  Agent is speaking...');
+        break;
+      case AgentState.SILENT:
+        console.log('  Agent is silent');
+        break;
     }
   });
 
@@ -141,12 +151,7 @@ async function setupConnection() {
   await rtmClient.login({ token: CONFIG.rtmToken });
   console.log('✓ RTM login successful');
 
-  await rtcClient.join(
-    CONFIG.appId,
-    CONFIG.channelName,
-    CONFIG.rtcToken,
-    CONFIG.userId
-  );
+  await rtcClient.join(CONFIG.appId, CONFIG.channelName, CONFIG.rtcToken, CONFIG.userId);
   console.log('✓ RTC channel joined');
 
   const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();

@@ -22,10 +22,7 @@ export function MetricsPanel() {
 
   return (
     <div className="pg-panel">
-      <button
-        className="pg-panel-toggle"
-        onClick={() => setOpen((v) => !v)}
-      >
+      <button className="pg-panel-toggle" onClick={() => setOpen((v) => !v)}>
         {open ? '[-]' : '[+]'} Metrics ({history.length})
       </button>
       {open && (

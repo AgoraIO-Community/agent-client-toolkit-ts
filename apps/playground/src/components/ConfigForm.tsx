@@ -26,8 +26,7 @@ function loadDefaults(): Credentials {
       import.meta.env.VITE_AGORA_USER_ID ??
       saved.userId ??
       'user_' + Math.floor(Math.random() * 10000),
-    agentUserId:
-      import.meta.env.VITE_AGORA_AGENT_USER_ID ?? saved.agentUserId ?? '',
+    agentUserId: import.meta.env.VITE_AGORA_AGENT_USER_ID ?? saved.agentUserId ?? '',
     renderMode: saved.renderMode ?? TranscriptHelperMode.TEXT,
     enableLog: saved.enableLog ?? true,
   };
@@ -48,8 +47,7 @@ export function ConfigForm({ onConnect }: Props) {
   const update = (key: keyof Credentials, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const randomizeUserId = () =>
-    update('userId', 'user_' + Math.floor(Math.random() * 100000));
+  const randomizeUserId = () => update('userId', 'user_' + Math.floor(Math.random() * 100000));
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -88,9 +86,7 @@ export function ConfigForm({ onConnect }: Props) {
           onChange={(e) => update('rtmToken', e.target.value)}
           placeholder="Leave empty for RTC-only mode"
         />
-        <small>
-          Leave empty for RTC-only (text/image/interrupt disabled)
-        </small>
+        <small>Leave empty for RTC-only (text/image/interrupt disabled)</small>
       </label>
 
       <label>
@@ -130,9 +126,7 @@ export function ConfigForm({ onConnect }: Props) {
         Render Mode
         <select
           value={form.renderMode}
-          onChange={(e) =>
-            update('renderMode', e.target.value as TranscriptHelperMode)
-          }
+          onChange={(e) => update('renderMode', e.target.value as TranscriptHelperMode)}
         >
           <option value={TranscriptHelperMode.TEXT}>Text</option>
           <option value={TranscriptHelperMode.WORD}>Word</option>

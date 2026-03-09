@@ -22,18 +22,13 @@ export function TranscriptPanel() {
   }, [transcript]);
 
   if (transcript.length === 0) {
-    return (
-      <div className="pg-transcript pg-transcript-empty">
-        Waiting for conversation...
-      </div>
-    );
+    return <div className="pg-transcript pg-transcript-empty">Waiting for conversation...</div>;
   }
 
   return (
     <div className="pg-transcript">
       {transcript.map((item, i) => {
-        const isAgent =
-          item.metadata?.object === MessageType.AGENT_TRANSCRIPTION;
+        const isAgent = item.metadata?.object === MessageType.AGENT_TRANSCRIPTION;
         return (
           <div
             key={`${item.turn_id}-${item.stream_id}-${i}`}
@@ -41,9 +36,7 @@ export function TranscriptPanel() {
           >
             <div className="pg-bubble-meta">
               <span className="pg-bubble-uid">{item.uid}</span>
-              <span className="pg-bubble-status">
-                {STATUS_LABELS[item.status] ?? item.status}
-              </span>
+              <span className="pg-bubble-status">{STATUS_LABELS[item.status] ?? item.status}</span>
             </div>
             <div className="pg-bubble-text">{item.text || '...'}</div>
           </div>

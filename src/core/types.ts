@@ -114,19 +114,13 @@ export interface HelperRTMEvents {
 
 export interface HelperRTCEvents {
   [RTCEventType.NETWORK_QUALITY]: (quality: NetworkQuality) => void;
-  [RTCEventType.USER_PUBLISHED]: (
-    user: IAgoraRTCRemoteUser,
-    mediaType: 'audio' | 'video'
-  ) => void;
+  [RTCEventType.USER_PUBLISHED]: (user: IAgoraRTCRemoteUser, mediaType: 'audio' | 'video') => void;
   [RTCEventType.USER_UNPUBLISHED]: (
     user: IAgoraRTCRemoteUser,
     mediaType: 'audio' | 'video'
   ) => void;
   [RTCEventType.USER_JOINED]: (user: IAgoraRTCRemoteUser) => void;
-  [RTCEventType.USER_LEFT]: (
-    user: IAgoraRTCRemoteUser,
-    reason?: string
-  ) => void;
+  [RTCEventType.USER_LEFT]: (user: IAgoraRTCRemoteUser, reason?: string) => void;
   [RTCEventType.CONNECTION_STATE_CHANGE]: (data: {
     curState: ConnectionState;
     revState: ConnectionState;
@@ -151,7 +145,9 @@ export class ConversationalAIError extends Error {
 
 export class NotInitializedError extends ConversationalAIError {
   constructor() {
-    super('AgoraVoiceAI is not initialized. Call await AgoraVoiceAI.init(config) before using getInstance().');
+    super(
+      'AgoraVoiceAI is not initialized. Call await AgoraVoiceAI.init(config) before using getInstance().'
+    );
     this.name = 'NotInitializedError';
   }
 }
@@ -260,8 +256,7 @@ export interface MessageError {
   [x: string]: unknown;
 }
 
-export interface PresenceState
-  extends Omit<RTMEvents.PresenceEvent, 'stateChanged'> {
+export interface PresenceState extends Omit<RTMEvents.PresenceEvent, 'stateChanged'> {
   stateChanged: {
     state: AgentState;
     turn_id: string;

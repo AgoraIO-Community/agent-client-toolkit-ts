@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 declare const process: { env?: { NODE_ENV?: string } } | undefined;
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRTCClient } from 'agora-rtc-react';
 import type { IAgoraRTCClient } from 'agora-rtc-sdk-ng';
 import {
@@ -20,9 +19,9 @@ import {
   type ModuleError,
   type MessageReceipt,
 } from '@agora/conversational-ai-toolkit';
+import { AgoraVoiceAIContext } from './context';
 
-export interface UseConversationalAIConfig
-  extends Omit<AgoraVoiceAIConfig, 'rtcEngine'> {
+export interface UseConversationalAIConfig extends Omit<AgoraVoiceAIConfig, 'rtcEngine'> {
   /**
    * The Agora channel name to subscribe to.
    * Changing this value triggers a full re-subscribe cycle.
@@ -57,37 +56,16 @@ export interface UseConversationalAIReturn {
   messageReceipt: MessageReceipt | null;
 }
 
+/** Internal return type that includes the AI instance for context provision. */
+interface UseConversationalAICoreReturn extends UseConversationalAIReturn {
+  aiInstance: AgoraVoiceAI | null;
+}
+
 /**
- * Flagship hook for Agora Conversational AI sessions.
- *
- * Manages the full connection lifecycle (init → subscribeMessage on mount,
- * unsubscribe → destroy on unmount) and exposes transcript, agent state,
- * and controls in a single hook.
- *
- * Must be rendered inside an `AgoraRTCProvider` (from `agora-rtc-react`)
- * so that `useRTCClient()` can resolve the Agora client.
- *
- * @remarks
- * **Dependency array:** This hook depends on `rtcClient` (from the provider)
- * and `config.channel`. The full `config` object is intentionally excluded
- * from the dependency array — wrap `config` in `useMemo` if it is constructed
- * inline to prevent unnecessary re-subscribe cycles.
- *
- * @example
- * function ConversationalApp() {
- *   const config = useMemo(() => ({
- *     channel: 'my-channel',
- *     rtmConfig: { rtmEngine: myRtmClient },
- *     renderMode: TranscriptHelperMode.WORD,
- *   }), []);
- *
- *   const { transcript, agentState, interrupt } = useConversationalAI(config);
- *   // ...
- * }
+ * Internal hook containing all lifecycle logic. Used by both the public
+ * `useConversationalAI` hook and the `ConversationalAIProvider` component.
  */
-export function useConversationalAI(
-  config: UseConversationalAIConfig
-): UseConversationalAIReturn {
+function useConversationalAICore(config: UseConversationalAIConfig): UseConversationalAICoreReturn {
   const rtcClient = useRTCClient();
 
   // Dev-mode warning: detect unstable config objects that cause unnecessary re-init
@@ -103,8 +81,8 @@ export function useConversationalAI(
       if (configRef.current !== config && configRef.current.channel === config.channel) {
         console.warn(
           '[useConversationalAI] Config object changed identity but channel is the same. ' +
-          'Wrap your config in useMemo() to avoid unnecessary re-initialization. ' +
-          'See: https://react.dev/reference/react/useMemo'
+            'Wrap your config in useMemo() to avoid unnecessary re-initialization. ' +
+            'See: https://react.dev/reference/react/useMemo'
         );
       }
     }
@@ -119,6 +97,7 @@ export function useConversationalAI(
   const [error, setError] = useState<ModuleError | null>(null);
   const [metrics, setMetrics] = useState<AgentMetric | null>(null);
   const [messageReceipt, setMessageReceipt] = useState<MessageReceipt | null>(null);
+  const [aiInstance, setAiInstance] = useState<AgoraVoiceAI | null>(null);
 
   // Stable ref to the AgoraVoiceAI instance so callbacks can access it without
   // being re-created on each render.
@@ -141,11 +120,9 @@ export function useConversationalAI(
     const handleStateChange = (_agentUserId: string, event: StateChangeEvent) =>
       setAgentState(event.state);
 
-    const handleError = (_agentUserId: string, err: ModuleError) =>
-      setError(err);
+    const handleError = (_agentUserId: string, err: ModuleError) => setError(err);
 
-    const handleMetrics = (_agentUserId: string, m: AgentMetric) =>
-      setMetrics(m);
+    const handleMetrics = (_agentUserId: string, m: AgentMetric) => setMetrics(m);
 
     const handleReceipt = (_agentUserId: string, receipt: MessageReceipt) =>
       setMessageReceipt(receipt);
@@ -176,6 +153,7 @@ export function useConversationalAI(
         }
 
         aiRef.current = ai;
+        setAiInstance(ai);
 
         ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, handleTranscript);
         ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handleStateChange);
@@ -221,9 +199,9 @@ export function useConversationalAI(
         }
         aiRef.current = null;
       }
+      setAiInstance(null);
       setIsConnected(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rtcClient, config.channel]);
 
   const interrupt = useCallback(async (agentUserId: string) => {
@@ -248,5 +226,74 @@ export function useConversationalAI(
     sendMessage,
     metrics,
     messageReceipt,
+    aiInstance,
   };
+}
+
+/**
+ * Flagship hook for Agora Conversational AI sessions.
+ *
+ * Manages the full connection lifecycle (init → subscribeMessage on mount,
+ * unsubscribe → destroy on unmount) and exposes transcript, agent state,
+ * and controls in a single hook.
+ *
+ * Must be rendered inside an `AgoraRTCProvider` (from `agora-rtc-react`)
+ * so that `useRTCClient()` can resolve the Agora client.
+ *
+ * @remarks
+ * **Dependency array:** This hook depends on `rtcClient` (from the provider)
+ * and `config.channel`. The full `config` object is intentionally excluded
+ * from the dependency array — wrap `config` in `useMemo` if it is constructed
+ * inline to prevent unnecessary re-subscribe cycles.
+ *
+ * @example
+ * function ConversationalApp() {
+ *   const config = useMemo(() => ({
+ *     channel: 'my-channel',
+ *     rtmConfig: { rtmEngine: myRtmClient },
+ *     renderMode: TranscriptHelperMode.WORD,
+ *   }), []);
+ *
+ *   const { transcript, agentState, interrupt } = useConversationalAI(config);
+ *   // ...
+ * }
+ */
+export function useConversationalAI(config: UseConversationalAIConfig): UseConversationalAIReturn {
+  const { aiInstance: _, ...hookReturn } = useConversationalAICore(config);
+  return hookReturn;
+}
+
+/**
+ * Provider component that manages the AgoraVoiceAI lifecycle and exposes
+ * the AI instance via React context to standalone hooks (`useTranscript`,
+ * `useAgentState`, `useAgentError`, `useAgentMetrics`).
+ *
+ * Use this instead of `useConversationalAI` when you have standalone hooks
+ * in child components that need access to the AI instance.
+ *
+ * Must be rendered inside an `AgoraRTCProvider` (from `agora-rtc-react`).
+ *
+ * @example
+ * function App() {
+ *   const config = useMemo(() => ({ channel: 'my-channel' }), []);
+ *   return (
+ *     <AgoraRTCProvider client={rtcClient}>
+ *       <ConversationalAIProvider config={config}>
+ *         <TranscriptPanel />
+ *         <StatusBar />
+ *       </ConversationalAIProvider>
+ *     </AgoraRTCProvider>
+ *   );
+ * }
+ */
+export function ConversationalAIProvider({
+  config,
+  children,
+}: {
+  config: UseConversationalAIConfig;
+  children: React.ReactNode;
+}): React.ReactElement {
+  const { aiInstance } = useConversationalAICore(config);
+
+  return React.createElement(AgoraVoiceAIContext.Provider, { value: aiInstance }, children);
 }

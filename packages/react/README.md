@@ -13,21 +13,46 @@ npm install @agora/conversational-ai-toolkit-react @agora/conversational-ai-tool
 
 ## Quick Start
 
+Use `ConversationalAIProvider` to manage the AI lifecycle and give standalone hooks access via React context:
+
 ```tsx
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import AgoraRTC, { AgoraRTCProvider } from 'agora-rtc-react';
-import { useConversationalAI, useAgentState } from '@agora/conversational-ai-toolkit-react';
+import {
+  ConversationalAIProvider,
+  useTranscript,
+  useAgentState,
+} from '@agora/conversational-ai-toolkit-react';
 
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
 function App() {
+  const config = useMemo(() => ({ channel: 'my-channel' }), []);
+
   return (
     <AgoraRTCProvider client={client}>
-      <VoiceAI />
+      <ConversationalAIProvider config={config}>
+        <TranscriptPanel />
+        <StatusBar />
+      </ConversationalAIProvider>
     </AgoraRTCProvider>
   );
 }
 
+function TranscriptPanel() {
+  const transcript = useTranscript(); // connects via context — no polling
+  return <ul>{transcript.map((t) => <li key={t.turn_id}>{t.text}</li>)}</ul>;
+}
+
+function StatusBar() {
+  const { agentState } = useAgentState(); // connects via context
+  return <span>{agentState ?? 'idle'}</span>;
+}
+```
+
+Alternatively, use `useConversationalAI` directly for a batteries-included hook:
+
+```tsx
 function VoiceAI() {
   const config = useMemo(() => ({ channel: 'my-channel' }), []);
   const { transcript, agentState, isConnected, interrupt } = useConversationalAI(config);
@@ -42,12 +67,6 @@ function VoiceAI() {
     </div>
   );
 }
-
-function StatusBar() {
-  // Standalone hook — no lifecycle ownership needed
-  const { agentState } = useAgentState();
-  return <span>{agentState ?? 'idle'}</span>;
-}
 ```
 
 ## Prerequisites
@@ -60,6 +79,20 @@ function StatusBar() {
 
 ## API Reference
 
+### `ConversationalAIProvider`
+
+Provider component that manages the `AgoraVoiceAI` lifecycle and exposes the AI instance via React context to standalone hooks. Use this when you have standalone hooks in child components.
+
+```tsx
+<AgoraRTCProvider client={rtcClient}>
+  <ConversationalAIProvider config={{ channel: 'my-channel' }}>
+    {/* standalone hooks connect instantly via context */}
+    <TranscriptPanel />
+    <StatusBar />
+  </ConversationalAIProvider>
+</AgoraRTCProvider>
+```
+
 ### `useConversationalAI(config)`
 
 Flagship hook — initializes and manages the full `AgoraVoiceAI` lifecycle (init, subscribe, unsubscribe, destroy). Must be rendered inside an `AgoraRTCProvider`.
@@ -71,11 +104,24 @@ const { transcript, agentState, isConnected, error, interrupt, sendMessage, metr
 
 `config` extends `AgoraVoiceAIConfig` (omitting `rtcEngine`, which comes from the provider) and adds `channel: string`.
 
+**Return values:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `transcript` | `TranscriptHelperItem[]` | Full conversation history. Updates on every `TRANSCRIPT_UPDATED` event. |
+| `agentState` | `AgentState \| null` | Current agent state (`'idle'`, `'listening'`, `'thinking'`, `'speaking'`, `'silent'`). Null until the first event. |
+| `isConnected` | `boolean` | `true` after `subscribeMessage` succeeds. |
+| `error` | `ModuleError \| null` | Most recent error from `AGENT_ERROR`. Null until an error occurs. |
+| `interrupt` | `(agentUserId: string) => Promise<void>` | Send an interrupt signal to the agent. Requires `rtmConfig`. |
+| `sendMessage` | `(agentUserId: string, text: string) => Promise<void>` | Send a text message to the agent. Requires `rtmConfig`. |
+| `metrics` | `AgentMetric \| null` | Latest metric from `AGENT_METRICS` (module type, name, value, timestamp). |
+| `messageReceipt` | `MessageReceipt \| null` | Latest delivery receipt from `MESSAGE_RECEIPT_UPDATED`. |
+
 > **Important:** Only `rtcClient` and `config.channel` are in the effect dependency array. Wrap inline config objects in `useMemo` to avoid unnecessary re-subscribe cycles.
 
 ### `useTranscript()`
 
-Subscribe to transcript updates from a pre-initialized `AgoraVoiceAI` instance. Use when you need transcript in a component that doesn't own the AI lifecycle.
+Subscribe to transcript updates. Must be inside a `ConversationalAIProvider`.
 
 ```typescript
 const transcript = useTranscript();
@@ -115,7 +161,9 @@ const { metrics, agentUserId } = useAgentMetrics();
 
 ## Standalone hooks vs `useConversationalAI`
 
-Both coexist. `useConversationalAI` is the batteries-included option — lifecycle + all events in one return. The standalone hooks (`useTranscript`, `useAgentState`, `useAgentError`, `useAgentMetrics`) are for granular use in components that don't own the lifecycle (e.g. a `<StatusBar>` that only needs agent state). If both are used in the same tree, the same event fires two handlers — this is expected.
+**`ConversationalAIProvider` + standalone hooks** is the recommended pattern. The provider manages the lifecycle, and standalone hooks connect via React context. Each hook subscribes to one slice of state, so only the components that need updates re-render.
+
+**`useConversationalAI`** is a convenience hook for simple cases where a single component needs everything (transcript, state, controls) in one return value. Standalone hooks require a `ConversationalAIProvider` — they won't receive events without one.
 
 ```tsx
 function StatusBar() {

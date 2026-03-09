@@ -16,10 +16,11 @@ export class AgoraMetricsReporter implements IMetricsReporter {
 
   async init(): Promise<void> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { default: AgoraReport } = await import('@agora-js/report');
       if (typeof AgoraReport !== 'function') {
-        console.warn('[ConversationalAI] @agora-js/report default export is not a constructor. Falling back to console metrics.');
+        console.warn(
+          '[ConversationalAI] @agora-js/report default export is not a constructor. Falling back to console metrics.'
+        );
         return;
       }
       // @agora-js/report's constructor API is not publicly typed; cast required.
@@ -28,7 +29,7 @@ export class AgoraMetricsReporter implements IMetricsReporter {
     } catch (e: unknown) {
       const isModuleNotFound =
         e instanceof Error &&
-        ('code' in e && (e as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND' ||
+        (('code' in e && (e as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') ||
           e.message.includes('Cannot find module'));
       if (isModuleNotFound) {
         console.warn(

@@ -67,8 +67,7 @@ class LogManager {
       JSZip = (await import('jszip')).default;
     } catch {
       throw new Error(
-        '[ConversationalAI] downloadLogs requires jszip. ' +
-          'Install it with: npm install jszip',
+        '[ConversationalAI] downloadLogs requires jszip. ' + 'Install it with: npm install jszip'
       );
     }
 

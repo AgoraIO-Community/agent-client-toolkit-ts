@@ -374,11 +374,18 @@ window.addEventListener('beforeunload', () => {
 
 See the [Agora Conversational AI documentation](https://docs.agora.io/en/conversational-ai/overview) for the full agent start request format.
 
-### `NotInitializedError` when using standalone hooks
+### Standalone hooks not receiving events
 
-**Cause:** Standalone hooks (`useTranscript`, `useAgentState`, etc.) require `AgoraVoiceAI` to be initialized first — typically by `useConversationalAI` in a parent component.
+**Cause:** Standalone hooks (`useTranscript`, `useAgentState`, etc.) need access to the `AgoraVoiceAI` instance. Without a `ConversationalAIProvider`, they fall back to a single `getInstance()` attempt which may miss the instance if `init()` hasn't completed yet.
 
-**Fix:** Ensure a component using `useConversationalAI` is mounted before any component using standalone hooks.
+**Fix:** Wrap your component tree in `ConversationalAIProvider` — standalone hooks connect instantly via React context:
+
+```tsx
+<ConversationalAIProvider config={{ channel: 'my-channel' }}>
+  <TranscriptPanel />  {/* useTranscript() connects via context */}
+  <StatusBar />         {/* useAgentState() connects via context */}
+</ConversationalAIProvider>
+```
 
 ### Transcript not updating in WORD mode
 

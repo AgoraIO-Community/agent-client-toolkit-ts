@@ -1,56 +1,45 @@
 import { useState, useEffect } from 'react';
 import {
-  AgoraVoiceAI,
   AgoraVoiceAIEvents,
   type TranscriptHelperItem,
   type UserTranscription,
   type AgentTranscription,
 } from '@agora/conversational-ai-toolkit';
+import { useAgoraVoiceAIInstance } from './context';
 
 /**
- * Thin hook for consumers who already have an `AgoraVoiceAI` instance
- * (e.g. via `useConversationalAI`) and want to observe transcript state
- * in a separate component.
+ * Subscribe to transcript updates from the nearest `ConversationalAIProvider`.
  *
- * Binds `TRANSCRIPT_UPDATED` on mount and unbinds on unmount.
- * Returns an empty array if `AgoraVoiceAI` has not been initialized yet.
+ * Must be rendered inside a `ConversationalAIProvider`. Returns an empty
+ * array until the provider's `AgoraVoiceAI` instance is initialized.
  *
  * @example
  * function TranscriptPanel() {
  *   const transcript = useTranscript();
- *   return <ul>{transcript.map(item => <li key={item.uid}>{...}</li>)}</ul>;
+ *   return <ul>{transcript.map(item => <li key={item.uid}>{item.text}</li>)}</ul>;
  * }
  */
 export function useTranscript(): TranscriptHelperItem<
   Partial<UserTranscription | AgentTranscription>
 >[] {
+  const ai = useAgoraVoiceAIInstance();
+
   const [transcript, setTranscript] = useState<
     TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[]
   >([]);
 
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    if (!ai) return;
 
-    const tryConnect = () => {
+    ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
+    return () => {
       try {
-        const ai = AgoraVoiceAI.getInstance();
-        ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
-        cleanup = () => {
-          try { ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript); } catch { /* destroyed */ }
-        };
+        ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
       } catch {
-        retryTimer = setTimeout(tryConnect, 100);
+        /* destroyed */
       }
     };
-
-    tryConnect();
-
-    return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      cleanup?.();
-    };
-  }, []);
+  }, [ai]);
 
   return transcript;
 }

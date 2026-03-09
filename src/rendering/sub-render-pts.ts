@@ -18,11 +18,7 @@ export class SubRenderPTS {
   private callMessagePrint: CallMessagePrint;
   private handleQueue: HandleQueueFn;
 
-  constructor(
-    interval: number,
-    callMessagePrint: CallMessagePrint,
-    handleQueue: HandleQueueFn
-  ) {
+  constructor(interval: number, callMessagePrint: CallMessagePrint, handleQueue: HandleQueueFn) {
     this._interval = interval;
     this.callMessagePrint = callMessagePrint;
     this.handleQueue = handleQueue;
@@ -63,20 +59,14 @@ export class SubRenderPTS {
         clearInterval(this._intervalRef);
         this._intervalRef = null;
       }
-      this._intervalRef = setInterval(
-        () => this.handleQueue(this._pts),
-        this._interval
-      );
+      this._intervalRef = setInterval(() => this.handleQueue(this._pts), this._interval);
       return;
     }
     // else(if not forced): skip if interval is already set, otherwise set an interval
     if (this._intervalRef) {
       return;
     }
-    this._intervalRef = setInterval(
-      () => this.handleQueue(this._pts),
-      this._interval
-    );
+    this._intervalRef = setInterval(() => this.handleQueue(this._pts), this._interval);
   }
 
   public teardownInterval() {

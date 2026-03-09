@@ -21,10 +21,8 @@
  *   - Cache size cap to prevent unbounded memory growth.
  */
 export class ChunkedMessageAssembler {
-  private cache: Map<
-    string,
-    Array<{ part_idx: number; part_sum: number; content: string }>
-  > = new Map();
+  private cache: Map<string, Array<{ part_idx: number; part_sum: number; content: string }>> =
+    new Map();
   private timestamps: Map<string, number> = new Map();
   private readonly ttlMs: number;
   private readonly maxCacheSize: number;
@@ -81,7 +79,11 @@ export class ChunkedMessageAssembler {
     }
     if (part_sum !== -1 && part_idx >= part_sum) {
       if (this.enableLog) {
-        console.warn('[ChunkedMessageAssembler] part_idx >= part_sum', { msgId, part_idx, part_sum });
+        console.warn('[ChunkedMessageAssembler] part_idx >= part_sum', {
+          msgId,
+          part_idx,
+          part_sum,
+        });
       }
       return null;
     }

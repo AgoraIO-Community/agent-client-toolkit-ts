@@ -3,7 +3,11 @@ export { AgoraVoiceAI } from './core/conversational-ai';
 export { type AgoraVoiceAIConfig, type RTMConfig } from './core/config';
 export { CovSubRenderController } from './rendering/sub-render';
 export { ChunkedMessageAssembler } from './messaging/chunked';
-export { type IMetricsReporter, ConsoleMetricsReporter, AgoraMetricsReporter } from './utils/metrics';
+export {
+  type IMetricsReporter,
+  ConsoleMetricsReporter,
+  AgoraMetricsReporter,
+} from './utils/metrics';
 
 // --- Consumer-facing types from core/types ---
 export {
@@ -47,8 +51,4 @@ export {
 } from './core/types';
 
 // --- Consumer-facing types from core/events ---
-export {
-  AgoraVoiceAIEvents,
-  EventLogLevel,
-  type AgoraVoiceAIEventHandlers,
-} from './core/events';
+export { AgoraVoiceAIEvents, EventLogLevel, type AgoraVoiceAIEventHandlers } from './core/events';

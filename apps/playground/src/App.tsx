@@ -7,7 +7,9 @@ import { ConfigForm, type Credentials } from './components/ConfigForm';
 import { SessionProvider } from './components/SessionProvider';
 
 // AgoraRTC.setParameter is a private API not exposed in types — cast required
-const setAgoraParameter = (AgoraRTC as unknown as { setParameter: (key: string, value: boolean) => void }).setParameter;
+const setAgoraParameter = (
+  AgoraRTC as unknown as { setParameter: (key: string, value: boolean) => void }
+).setParameter;
 
 /**
  * Root app component. Two-phase flow:

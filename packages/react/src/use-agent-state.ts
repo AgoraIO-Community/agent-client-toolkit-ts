@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
-  AgoraVoiceAI,
   AgoraVoiceAIEvents,
   type AgentState,
   type StateChangeEvent,
 } from '@agora/conversational-ai-toolkit';
+import { useAgoraVoiceAIInstance } from './context';
 
 export interface UseAgentStateReturn {
   /** Current agent state. Null until the first AGENT_STATE_CHANGED event. */
@@ -16,15 +16,11 @@ export interface UseAgentStateReturn {
 }
 
 /**
- * Subscribes to `AGENT_STATE_CHANGED` events from a pre-initialized
- * `AgoraVoiceAI` instance.
+ * Subscribe to `AGENT_STATE_CHANGED` events from the nearest
+ * `ConversationalAIProvider`.
  *
- * Use in components that only need agent state without owning the AI
- * lifecycle (e.g. a `<StatusBar>`). If `AgoraVoiceAI` has not been
- * initialized yet, returns nulls until initialization completes.
- *
- * Can be used alongside `useConversationalAI` — the same event fires both
- * handlers; this is expected and documented.
+ * Must be rendered inside a `ConversationalAIProvider`. Returns nulls
+ * until the provider's `AgoraVoiceAI` instance is initialized.
  *
  * @example
  * function StatusBar() {
@@ -33,13 +29,14 @@ export interface UseAgentStateReturn {
  * }
  */
 export function useAgentState(): UseAgentStateReturn {
+  const ai = useAgoraVoiceAIInstance();
+
   const [agentState, setAgentState] = useState<AgentState | null>(null);
   const [stateEvent, setStateEvent] = useState<StateChangeEvent | null>(null);
   const [agentUserId, setAgentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    if (!ai) return;
 
     const handler = (userId: string, event: StateChangeEvent) => {
       setAgentState(event.state);
@@ -47,25 +44,15 @@ export function useAgentState(): UseAgentStateReturn {
       setAgentUserId(userId);
     };
 
-    const tryConnect = () => {
+    ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
+    return () => {
       try {
-        const ai = AgoraVoiceAI.getInstance();
-        ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
-        cleanup = () => {
-          try { ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler); } catch { /* destroyed */ }
-        };
+        ai.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, handler);
       } catch {
-        retryTimer = setTimeout(tryConnect, 100);
+        /* destroyed */
       }
     };
-
-    tryConnect();
-
-    return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      cleanup?.();
-    };
-  }, []);
+  }, [ai]);
 
   return { agentState, stateEvent, agentUserId };
 }

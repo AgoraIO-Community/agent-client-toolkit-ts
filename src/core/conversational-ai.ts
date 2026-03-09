@@ -10,10 +10,6 @@ import {
   RTCEventType,
   RTMEventType,
   TranscriptHelperMode,
-  ModuleType,
-  TurnStatus,
-  LocalTranscriptStatus,
-  MessageSalStatus,
   type AgentTranscription,
   type ChatMessageImage,
   type ChatMessageText,
@@ -24,29 +20,25 @@ import {
   type MessageReceipt,
   type ModuleError,
   type StateChangeEvent,
-  type HelperRTCEvents,
-  type HelperRTMEvents,
-  type DataChunkMessageWord,
-  type TranscriptHelperObjectWord,
   type TranscriptionBase,
-  type MessageInterrupt,
-  type MessageMetrics,
-  type MessageError,
-  type PresenceState,
-  type QueueItem,
-  type UserTracks,
   type ChatMessageBase,
-  type LocalTranscriptionBase,
-  type LocalImageTranscription,
   type AgoraVoiceAIState,
-  NotFoundError,
   NotInitializedError,
   RTMRequiredError,
   ConversationalAIError,
 } from './types';
-import { AgoraVoiceAIEvents, EventHelper, EventLogLevel, type AgoraVoiceAIEventHandlers } from './events';
+import {
+  AgoraVoiceAIEvents,
+  EventHelper,
+  EventLogLevel,
+  type AgoraVoiceAIEventHandlers,
+} from './events';
 import { factoryFormatLog, ELoggerType, logger, genTraceID } from '../utils/debug';
-import { type IMetricsReporter, AgoraMetricsReporter, ConsoleMetricsReporter } from '../utils/metrics';
+import {
+  type IMetricsReporter,
+  AgoraMetricsReporter,
+  ConsoleMetricsReporter,
+} from '../utils/metrics';
 import { CovSubRenderController } from '../rendering/sub-render';
 import { ChunkedMessageAssembler } from '../messaging/chunked';
 
@@ -182,10 +174,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   constructor() {
     super();
 
-    this.callMessagePrint = (
-      type: ELoggerType = ELoggerType.debug,
-      ...args: unknown[]
-    ) => {
+    this.callMessagePrint = (type: ELoggerType = ELoggerType.debug, ...args: unknown[]) => {
       if (!this.enableLog) {
         return;
       }
@@ -297,7 +286,11 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   public static async init(cfg: AgoraVoiceAIConfig): Promise<AgoraVoiceAI> {
     if (AgoraVoiceAI._initPromise) {
       // Another init() is in-flight — wait for it, then re-init with our config
-      try { await AgoraVoiceAI._initPromise; } catch { /* swallow — we'll re-init */ }
+      try {
+        await AgoraVoiceAI._initPromise;
+      } catch {
+        /* swallow — we'll re-init */
+      }
     }
 
     AgoraVoiceAI._initPromise = AgoraVoiceAI._doInit(cfg);
@@ -330,12 +323,9 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
 
     AgoraVoiceAI._instance.rtcEngine = cfg.rtcEngine;
     AgoraVoiceAI._instance.rtmEngine = cfg.rtmConfig?.rtmEngine ?? null;
-    AgoraVoiceAI._instance.renderMode =
-      cfg.renderMode ?? TranscriptHelperMode.UNKNOWN;
+    AgoraVoiceAI._instance.renderMode = cfg.renderMode ?? TranscriptHelperMode.UNKNOWN;
     AgoraVoiceAI._instance.enableLog = cfg.enableLog ?? false;
-    AgoraVoiceAI._instance.setLogLevel(
-      cfg.enableLog ? EventLogLevel.DEBUG : EventLogLevel.NONE
-    );
+    AgoraVoiceAI._instance.setLogLevel(cfg.enableLog ? EventLogLevel.DEBUG : EventLogLevel.NONE);
     AgoraVoiceAI._instance.metricsReporter = reporter;
 
     return AgoraVoiceAI._instance;
@@ -441,10 +431,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * await api.chat("user123", imageMessage);
    * ```
    */
-  public async chat(
-    agentUserId: string,
-    message: ChatMessageText | ChatMessageImage
-  ) {
+  public async chat(agentUserId: string, message: ChatMessageText | ChatMessageImage) {
     switch (message.messageType) {
       case ChatMessageType.TEXT:
         return this.sendText(agentUserId, message as ChatMessageText);
@@ -621,11 +608,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    */
   public async interrupt(agentUserId: string) {
     const traceId = genTraceID();
-    this.callMessagePrint(
-      ELoggerType.debug,
-      `>>> [traceID:${traceId}] [interrupt]`,
-      agentUserId
-    );
+    this.callMessagePrint(ELoggerType.debug, `>>> [traceID:${traceId}] [interrupt]`, agentUserId);
 
     const rtmEngine = this.requireRTM('interrupt');
 
@@ -660,9 +643,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   }
 
   private onChatHistoryUpdated(
-    chatHistory: TranscriptHelperItem<
-      Partial<UserTranscription | AgentTranscription>
-    >[]
+    chatHistory: TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[]
   ) {
     this.callMessagePrint(
       ELoggerType.debug,
@@ -680,10 +661,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     );
     this.emit(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, agentUserId, event);
   }
-  private onAgentInterrupted(
-    agentUserId: string,
-    event: { turnID: number; timestamp: number }
-  ) {
+  private onAgentInterrupted(agentUserId: string, event: { turnID: number; timestamp: number }) {
     this.callMessagePrint(
       ELoggerType.debug,
       `>>> ${AgoraVoiceAIEvents.AGENT_INTERRUPTED}`,
@@ -713,21 +691,14 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     );
     this.emit(AgoraVoiceAIEvents.AGENT_ERROR, agentUserId, error);
   }
-  private onMessageReceiptUpdated(
-    agentUserId: string,
-    messageReceipt: MessageReceipt
-  ) {
+  private onMessageReceiptUpdated(agentUserId: string, messageReceipt: MessageReceipt) {
     this.callMessagePrint(
       ELoggerType.debug,
       `>>> ${AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED}`,
       agentUserId,
       messageReceipt
     );
-    this.emit(
-      AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED,
-      agentUserId,
-      messageReceipt
-    );
+    this.emit(AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED, agentUserId, messageReceipt);
   }
   private onMessageError(
     agentUserId: string,
@@ -747,10 +718,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     this.emit(AgoraVoiceAIEvents.MESSAGE_ERROR, agentUserId, error);
   }
 
-  private onMessageSalStatus(
-    agentUserId: string,
-    message: MessageSalStatusData
-  ) {
+  private onMessageSalStatus(agentUserId: string, message: MessageSalStatusData) {
     this.callMessagePrint(
       ELoggerType.debug,
       `>>> ${AgoraVoiceAIEvents.MESSAGE_SAL_STATUS}`,
@@ -766,11 +734,18 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       this._eventTimeoutId = null;
     }
     if (this._trackTranscriptHandler) {
-      this.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, this._trackTranscriptHandler as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]);
+      this.off(
+        AgoraVoiceAIEvents.TRANSCRIPT_UPDATED,
+        this
+          ._trackTranscriptHandler as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]
+      );
       this._trackTranscriptHandler = null;
     }
     if (this._trackStateHandler) {
-      this.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, this._trackStateHandler as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]);
+      this.off(
+        AgoraVoiceAIEvents.AGENT_STATE_CHANGED,
+        this._trackStateHandler as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]
+      );
       this._trackStateHandler = null;
     }
   }
@@ -782,7 +757,9 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     this._clearEventTimeout();
 
     const receivedEvents = new Set<string>();
-    const trackEvent = (event: string) => () => { receivedEvents.add(event); };
+    const trackEvent = (event: string) => () => {
+      receivedEvents.add(event);
+    };
 
     const trackTranscript = trackEvent('TRANSCRIPT_UPDATED');
     const trackState = trackEvent('AGENT_STATE_CHANGED');
@@ -790,13 +767,25 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     this._trackTranscriptHandler = trackTranscript;
     this._trackStateHandler = trackState;
 
-    this.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, trackTranscript as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]);
-    this.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, trackState as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]);
+    this.on(
+      AgoraVoiceAIEvents.TRANSCRIPT_UPDATED,
+      trackTranscript as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]
+    );
+    this.on(
+      AgoraVoiceAIEvents.AGENT_STATE_CHANGED,
+      trackState as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]
+    );
 
     this._eventTimeoutId = setTimeout(() => {
       // Clean up tracking listeners
-      this.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, trackTranscript as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]);
-      this.off(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, trackState as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]);
+      this.off(
+        AgoraVoiceAIEvents.TRANSCRIPT_UPDATED,
+        trackTranscript as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.TRANSCRIPT_UPDATED]
+      );
+      this.off(
+        AgoraVoiceAIEvents.AGENT_STATE_CHANGED,
+        trackState as AgoraVoiceAIEventHandlers[AgoraVoiceAIEvents.AGENT_STATE_CHANGED]
+      );
       this._trackTranscriptHandler = null;
       this._trackStateHandler = null;
       this._eventTimeoutId = null;
@@ -804,53 +793,32 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       if (!receivedEvents.has('TRANSCRIPT_UPDATED')) {
         console.warn(
           '[ConversationalAI] No TRANSCRIPT_UPDATED events received after 15s. ' +
-          'Ensure the agent is running and connected to the same channel. ' +
-          'If using WORD mode, verify ENABLE_AUDIO_PTS_METADATA is set before creating the RTC client.'
+            'Ensure the agent is running and connected to the same channel. ' +
+            'If using WORD mode, verify ENABLE_AUDIO_PTS_METADATA is set before creating the RTC client.'
         );
       }
       if (this.rtmEngine && !receivedEvents.has('AGENT_STATE_CHANGED')) {
         console.warn(
           '[ConversationalAI] No AGENT_STATE_CHANGED events received after 15s (RTM is configured). ' +
-          'Ensure the agent was started with advanced_features.enable_rtm: true ' +
-          'and parameters.data_channel: "rtm".'
+            'Ensure the agent was started with advanced_features.enable_rtm: true ' +
+            'and parameters.data_channel: "rtm".'
         );
       }
     }, 15_000);
   }
 
   private bindRtcEvents() {
-    this.getCfg().rtcEngine.on(
-      RTCEventType.AUDIO_PTS,
-      this._boundHandleRtcAudioPTS
-    );
-    this.getCfg().rtcEngine.on(
-      RTCEventType.STREAM_MESSAGE,
-      this._boundHandleRtcStreamMessage
-    );
+    this.getCfg().rtcEngine.on(RTCEventType.AUDIO_PTS, this._boundHandleRtcAudioPTS);
+    this.getCfg().rtcEngine.on(RTCEventType.STREAM_MESSAGE, this._boundHandleRtcStreamMessage);
   }
   private unbindRtcEvents() {
-    this.rtcEngine?.off(
-      RTCEventType.AUDIO_PTS,
-      this._boundHandleRtcAudioPTS
-    );
-    this.rtcEngine?.off(
-      RTCEventType.STREAM_MESSAGE,
-      this._boundHandleRtcStreamMessage
-    );
+    this.rtcEngine?.off(RTCEventType.AUDIO_PTS, this._boundHandleRtcAudioPTS);
+    this.rtcEngine?.off(RTCEventType.STREAM_MESSAGE, this._boundHandleRtcStreamMessage);
   }
   private bindRtmEvents() {
-    this.rtmEngine!.addEventListener(
-      RTMEventType.MESSAGE,
-      this._boundHandleRtmMessage
-    );
-    this.rtmEngine!.addEventListener(
-      RTMEventType.PRESENCE,
-      this._boundHandleRtmPresence
-    );
-    this.rtmEngine!.addEventListener(
-      RTMEventType.STATUS,
-      this._boundHandleRtmStatus
-    );
+    this.rtmEngine!.addEventListener(RTMEventType.MESSAGE, this._boundHandleRtmMessage);
+    this.rtmEngine!.addEventListener(RTMEventType.PRESENCE, this._boundHandleRtmPresence);
+    this.rtmEngine!.addEventListener(RTMEventType.STATUS, this._boundHandleRtmStatus);
   }
   private unbindRtmEvents() {
     const events = [RTMEventType.MESSAGE, RTMEventType.PRESENCE, RTMEventType.STATUS] as const;
@@ -870,19 +838,10 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
 
   private _handleRtcAudioPTS(pts: number) {
     try {
-      this.callMessagePrint(
-        ELoggerType.debug,
-        `<<< ${RTCEventType.AUDIO_PTS}`,
-        pts
-      );
+      this.callMessagePrint(ELoggerType.debug, `<<< ${RTCEventType.AUDIO_PTS}`, pts);
       this.covSubRenderController.setPts(pts);
     } catch (error) {
-      this.callMessagePrint(
-        ELoggerType.error,
-        `<<< ${RTCEventType.AUDIO_PTS}`,
-        pts,
-        error
-      );
+      this.callMessagePrint(ELoggerType.error, `<<< ${RTCEventType.AUDIO_PTS}`, pts, error);
     }
   }
 
@@ -901,10 +860,9 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       if ((text.match(/\|/g) || []).length === 3) {
         const assembled = this.chunkedAssembler.assemble(text);
         if (assembled !== null) {
-          this.covSubRenderController.handleMessage(
-            assembled as TranscriptionBase,
-            { publisher: String(uid) }
-          );
+          this.covSubRenderController.handleMessage(assembled as TranscriptionBase, {
+            publisher: String(uid),
+          });
         }
         return;
       }
@@ -936,11 +894,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
         );
       }
     } catch (error) {
-      this.callMessagePrint(
-        ELoggerType.error,
-        `<<< ${RTCEventType.STREAM_MESSAGE}`,
-        error
-      );
+      this.callMessagePrint(ELoggerType.error, `<<< ${RTCEventType.STREAM_MESSAGE}`, error);
     }
   }
 
