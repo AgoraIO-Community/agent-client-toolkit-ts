@@ -108,7 +108,7 @@ const { transcript, agentState, isConnected, error, interrupt, sendMessage, metr
 
 ### `useTranscript()`
 
-Subscribe to transcript updates from a pre-initialized `AgoraVoiceAI` instance. Use when you need transcript in a component that doesn't own the AI lifecycle.
+Subscribe to transcript updates. Must be inside a `ConversationalAIProvider`.
 
 ```typescript
 const transcript = useTranscript();
@@ -148,9 +148,9 @@ const { metrics, agentUserId } = useAgentMetrics();
 
 ## Standalone hooks vs `useConversationalAI`
 
-**Recommended:** Use `ConversationalAIProvider` + standalone hooks when you have multiple components that each need a slice of AI state. The provider manages the lifecycle, and standalone hooks connect via React context — no polling, no timing issues.
+**`ConversationalAIProvider` + standalone hooks** is the recommended pattern. The provider manages the lifecycle, and standalone hooks connect via React context. Each hook subscribes to one slice of state, so only the components that need updates re-render.
 
-**Alternative:** Use `useConversationalAI` directly when you only need AI state in one component. Standalone hooks can still work without the provider (they fall back to a single `getInstance()` attempt), but the provider is the recommended pattern for component trees.
+**`useConversationalAI`** is a convenience hook for simple cases where a single component needs everything (transcript, state, controls) in one return value. Standalone hooks require a `ConversationalAIProvider` — they won't receive events without one.
 
 ```tsx
 function StatusBar() {

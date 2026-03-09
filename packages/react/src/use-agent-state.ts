@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  AgoraVoiceAI,
   AgoraVoiceAIEvents,
   type AgentState,
   type StateChangeEvent,
@@ -17,19 +16,11 @@ export interface UseAgentStateReturn {
 }
 
 /**
- * Subscribes to `AGENT_STATE_CHANGED` events from a pre-initialized
- * `AgoraVoiceAI` instance.
+ * Subscribe to `AGENT_STATE_CHANGED` events from the nearest
+ * `ConversationalAIProvider`.
  *
- * Use in components that only need agent state without owning the AI
- * lifecycle (e.g. a `<StatusBar>`). If `AgoraVoiceAI` has not been
- * initialized yet, returns nulls until initialization completes.
- *
- * When used inside a `ConversationalAIProvider`, connects instantly via
- * React context. When used without the provider, falls back to a single
- * `getInstance()` attempt (no polling).
- *
- * Can be used alongside `useConversationalAI` — the same event fires both
- * handlers; this is expected and documented.
+ * Must be rendered inside a `ConversationalAIProvider`. Returns nulls
+ * until the provider's `AgoraVoiceAI` instance is initialized.
  *
  * @example
  * function StatusBar() {
@@ -38,20 +29,7 @@ export interface UseAgentStateReturn {
  * }
  */
 export function useAgentState(): UseAgentStateReturn {
-  const contextAi = useAgoraVoiceAIInstance();
-  const [fallbackAi, setFallbackAi] = useState<AgoraVoiceAI | null>(null);
-
-  // Fallback: single getInstance() attempt for backward compat without provider
-  useEffect(() => {
-    if (contextAi || fallbackAi) return;
-    try {
-      setFallbackAi(AgoraVoiceAI.getInstance());
-    } catch {
-      // Not initialized and no provider — hook returns defaults
-    }
-  }, [contextAi, fallbackAi]);
-
-  const ai = contextAi ?? fallbackAi;
+  const ai = useAgoraVoiceAIInstance();
 
   const [agentState, setAgentState] = useState<AgentState | null>(null);
   const [stateEvent, setStateEvent] = useState<StateChangeEvent | null>(null);

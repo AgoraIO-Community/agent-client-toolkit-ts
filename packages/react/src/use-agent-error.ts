@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  AgoraVoiceAI,
   AgoraVoiceAIEvents,
   type ModuleError,
   type ChatMessageType,
@@ -29,16 +28,15 @@ export interface UseAgentErrorReturn {
 }
 
 /**
- * Subscribes to both `AGENT_ERROR` and `MESSAGE_ERROR` events from a
- * pre-initialized `AgoraVoiceAI` instance.
+ * Subscribe to both `AGENT_ERROR` and `MESSAGE_ERROR` events from the
+ * nearest `ConversationalAIProvider`.
  *
  * The returned `error` uses a discriminated union with a `source` field
  * (`'agent'` or `'message'`) so consumers can distinguish pipeline errors
  * from RTM message errors when needed.
  *
- * When used inside a `ConversationalAIProvider`, connects instantly via
- * React context. When used without the provider, falls back to a single
- * `getInstance()` attempt (no polling).
+ * Must be rendered inside a `ConversationalAIProvider`. Returns null
+ * until the provider's `AgoraVoiceAI` instance is initialized.
  *
  * @example
  * function ErrorToast() {
@@ -53,20 +51,7 @@ export interface UseAgentErrorReturn {
  * }
  */
 export function useAgentError(): UseAgentErrorReturn {
-  const contextAi = useAgoraVoiceAIInstance();
-  const [fallbackAi, setFallbackAi] = useState<AgoraVoiceAI | null>(null);
-
-  // Fallback: single getInstance() attempt for backward compat without provider
-  useEffect(() => {
-    if (contextAi || fallbackAi) return;
-    try {
-      setFallbackAi(AgoraVoiceAI.getInstance());
-    } catch {
-      // Not initialized and no provider — hook returns defaults
-    }
-  }, [contextAi, fallbackAi]);
-
-  const ai = contextAi ?? fallbackAi;
+  const ai = useAgoraVoiceAIInstance();
 
   const [error, setError] = useState<AgentErrorEvent | null>(null);
 

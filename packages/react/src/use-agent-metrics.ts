@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  AgoraVoiceAI,
   AgoraVoiceAIEvents,
   type AgentMetric,
 } from '@agora/conversational-ai-toolkit';
@@ -14,15 +13,14 @@ export interface UseAgentMetricsReturn {
 }
 
 /**
- * Subscribes to `AGENT_METRICS` events from a pre-initialized
- * `AgoraVoiceAI` instance.
+ * Subscribe to `AGENT_METRICS` events from the nearest
+ * `ConversationalAIProvider`.
  *
  * Useful for latency displays and debugging UIs. Returns the latest
  * metric (module type, name, value, timestamp) and the agent UID.
  *
- * When used inside a `ConversationalAIProvider`, connects instantly via
- * React context. When used without the provider, falls back to a single
- * `getInstance()` attempt (no polling).
+ * Must be rendered inside a `ConversationalAIProvider`. Returns nulls
+ * until the provider's `AgoraVoiceAI` instance is initialized.
  *
  * @example
  * function LatencyDisplay() {
@@ -32,20 +30,7 @@ export interface UseAgentMetricsReturn {
  * }
  */
 export function useAgentMetrics(): UseAgentMetricsReturn {
-  const contextAi = useAgoraVoiceAIInstance();
-  const [fallbackAi, setFallbackAi] = useState<AgoraVoiceAI | null>(null);
-
-  // Fallback: single getInstance() attempt for backward compat without provider
-  useEffect(() => {
-    if (contextAi || fallbackAi) return;
-    try {
-      setFallbackAi(AgoraVoiceAI.getInstance());
-    } catch {
-      // Not initialized and no provider — hook returns defaults
-    }
-  }, [contextAi, fallbackAi]);
-
-  const ai = contextAi ?? fallbackAi;
+  const ai = useAgoraVoiceAIInstance();
 
   const [metrics, setMetrics] = useState<AgentMetric | null>(null);
   const [agentUserId, setAgentUserId] = useState<string | null>(null);

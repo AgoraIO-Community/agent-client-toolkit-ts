@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTranscript } from '../src/use-transcript';
 import { useAgentState } from '../src/use-agent-state';
@@ -7,16 +7,7 @@ import { useAgentError } from '../src/use-agent-error';
 import { useAgentMetrics } from '../src/use-agent-metrics';
 import { AgoraVoiceAIContext } from '../src/context';
 
-// We mock AgoraVoiceAI at the module level to control getInstance() behavior
-// and emit events in tests without real SDK dependencies.
-const mockOn = vi.fn();
-const mockOff = vi.fn();
-const mockGetInstance = vi.fn();
-
 vi.mock('@agora/conversational-ai-toolkit', () => ({
-  AgoraVoiceAI: {
-    getInstance: (...args: unknown[]) => mockGetInstance(...args),
-  },
   AgoraVoiceAIEvents: {
     TRANSCRIPT_UPDATED: 'transcript-updated',
     AGENT_STATE_CHANGED: 'agent-state-changed',
@@ -26,7 +17,7 @@ vi.mock('@agora/conversational-ai-toolkit', () => ({
   },
 }));
 
-/** Create a mock AI instance with on/off tracking */
+/** Create a mock AI instance with on/off tracking and emit helper */
 function createMockAi() {
   const handlers = new Map<string, Function[]>();
   const on = vi.fn((event: string, handler: Function) => {
@@ -49,14 +40,14 @@ function createMockAi() {
 }
 
 /** Render a hook inside the AgoraVoiceAIContext provider */
-function renderWithContext<T>(hook: () => T, ai: { on: unknown; off: unknown }) {
+function renderWithProvider<T>(hook: () => T, ai: { on: unknown; off: unknown }) {
   return renderHook(hook, {
     wrapper: ({ children }: { children: React.ReactNode }) =>
       React.createElement(AgoraVoiceAIContext.Provider, { value: ai as any }, children),
   });
 }
 
-describe('Standalone hooks — context path', () => {
+describe('Standalone hooks', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -65,7 +56,7 @@ describe('Standalone hooks — context path', () => {
   describe('useTranscript', () => {
     it('subscribes to TRANSCRIPT_UPDATED via context', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useTranscript(), mock);
+      const { result } = renderWithProvider(() => useTranscript(), mock);
 
       expect(mock.on).toHaveBeenCalledWith('transcript-updated', expect.any(Function));
       expect(result.current).toEqual([]);
@@ -73,7 +64,7 @@ describe('Standalone hooks — context path', () => {
 
     it('returns transcript after event fires', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useTranscript(), mock);
+      const { result } = renderWithProvider(() => useTranscript(), mock);
 
       const data = [{ uid: 'u1', text: 'hello', turn_id: 1 }];
       act(() => mock.emit('transcript-updated', data));
@@ -82,27 +73,15 @@ describe('Standalone hooks — context path', () => {
 
     it('unsubscribes on unmount', () => {
       const mock = createMockAi();
-      const { unmount } = renderWithContext(() => useTranscript(), mock);
+      const { unmount } = renderWithProvider(() => useTranscript(), mock);
 
       unmount();
       expect(mock.off).toHaveBeenCalledWith('transcript-updated', expect.any(Function));
     });
 
-    it('re-subscribes when context value changes', () => {
-      const mock1 = createMockAi();
-      const mock2 = createMockAi();
-
-      const { rerender } = renderHook(() => useTranscript(), {
-        wrapper: ({ children }: { children: React.ReactNode }) =>
-          React.createElement(AgoraVoiceAIContext.Provider, { value: mock1 as any }, children),
-      });
-
-      expect(mock1.on).toHaveBeenCalledWith('transcript-updated', expect.any(Function));
-
-      // Change context value by re-rendering with new provider value
-      rerender();
-      // For a true context change test, we'd need to change the provider value
-      // The hook's effect depends on [ai], so changing the reference triggers re-subscribe
+    it('returns empty array without provider', () => {
+      const { result } = renderHook(() => useTranscript());
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -110,7 +89,7 @@ describe('Standalone hooks — context path', () => {
   describe('useAgentState', () => {
     it('subscribes to AGENT_STATE_CHANGED via context', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentState(), mock);
+      const { result } = renderWithProvider(() => useAgentState(), mock);
 
       expect(mock.on).toHaveBeenCalledWith('agent-state-changed', expect.any(Function));
       expect(result.current.agentState).toBeNull();
@@ -120,7 +99,7 @@ describe('Standalone hooks — context path', () => {
 
     it('returns state after event fires', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentState(), mock);
+      const { result } = renderWithProvider(() => useAgentState(), mock);
 
       const stateEvent = { state: 'speaking', turnID: 1, timestamp: 123, reason: 'test' };
       act(() => mock.emit('agent-state-changed', 'agent-uid', stateEvent));
@@ -131,7 +110,7 @@ describe('Standalone hooks — context path', () => {
 
     it('returns full stateEvent and agentUserId', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentState(), mock);
+      const { result } = renderWithProvider(() => useAgentState(), mock);
 
       const stateEvent = { state: 'listening', turnID: 2, timestamp: 456, reason: 'user-spoke' };
       act(() => mock.emit('agent-state-changed', 'agent-42', stateEvent));
@@ -142,10 +121,17 @@ describe('Standalone hooks — context path', () => {
 
     it('unsubscribes on unmount', () => {
       const mock = createMockAi();
-      const { unmount } = renderWithContext(() => useAgentState(), mock);
+      const { unmount } = renderWithProvider(() => useAgentState(), mock);
 
       unmount();
       expect(mock.off).toHaveBeenCalledWith('agent-state-changed', expect.any(Function));
+    });
+
+    it('returns nulls without provider', () => {
+      const { result } = renderHook(() => useAgentState());
+      expect(result.current.agentState).toBeNull();
+      expect(result.current.stateEvent).toBeNull();
+      expect(result.current.agentUserId).toBeNull();
     });
   });
 
@@ -153,14 +139,14 @@ describe('Standalone hooks — context path', () => {
   describe('useAgentError', () => {
     it('returns null when no error', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentError(), mock);
+      const { result } = renderWithProvider(() => useAgentError(), mock);
 
       expect(result.current.error).toBeNull();
     });
 
     it('returns agent error with source: agent', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentError(), mock);
+      const { result } = renderWithProvider(() => useAgentError(), mock);
 
       const agentError = { type: 'llm', code: 500, message: 'LLM failed', timestamp: 123 };
       act(() => mock.emit('agent-error', 'agent-uid', agentError));
@@ -173,7 +159,7 @@ describe('Standalone hooks — context path', () => {
 
     it('returns message error with source: message', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentError(), mock);
+      const { result } = renderWithProvider(() => useAgentError(), mock);
 
       const msgError = { type: 'text', code: 400, message: 'Delivery failed', timestamp: 456 };
       act(() => mock.emit('message-error', 'agent-uid', msgError));
@@ -186,7 +172,7 @@ describe('Standalone hooks — context path', () => {
 
     it('clearError() resets to null', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentError(), mock);
+      const { result } = renderWithProvider(() => useAgentError(), mock);
 
       const agentError = { type: 'tts', code: 503, message: 'TTS timeout', timestamp: 789 };
       act(() => mock.emit('agent-error', 'agent-uid', agentError));
@@ -197,7 +183,7 @@ describe('Standalone hooks — context path', () => {
 
     it('subscribes to both AGENT_ERROR and MESSAGE_ERROR', () => {
       const mock = createMockAi();
-      renderWithContext(() => useAgentError(), mock);
+      renderWithProvider(() => useAgentError(), mock);
 
       expect(mock.on).toHaveBeenCalledWith('agent-error', expect.any(Function));
       expect(mock.on).toHaveBeenCalledWith('message-error', expect.any(Function));
@@ -205,11 +191,16 @@ describe('Standalone hooks — context path', () => {
 
     it('unsubscribes on unmount', () => {
       const mock = createMockAi();
-      const { unmount } = renderWithContext(() => useAgentError(), mock);
+      const { unmount } = renderWithProvider(() => useAgentError(), mock);
 
       unmount();
       expect(mock.off).toHaveBeenCalledWith('agent-error', expect.any(Function));
       expect(mock.off).toHaveBeenCalledWith('message-error', expect.any(Function));
+    });
+
+    it('returns null without provider', () => {
+      const { result } = renderHook(() => useAgentError());
+      expect(result.current.error).toBeNull();
     });
   });
 
@@ -217,7 +208,7 @@ describe('Standalone hooks — context path', () => {
   describe('useAgentMetrics', () => {
     it('returns null metrics initially', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentMetrics(), mock);
+      const { result } = renderWithProvider(() => useAgentMetrics(), mock);
 
       expect(result.current.metrics).toBeNull();
       expect(result.current.agentUserId).toBeNull();
@@ -225,7 +216,7 @@ describe('Standalone hooks — context path', () => {
 
     it('returns metrics after AGENT_METRICS fires', () => {
       const mock = createMockAi();
-      const { result } = renderWithContext(() => useAgentMetrics(), mock);
+      const { result } = renderWithProvider(() => useAgentMetrics(), mock);
 
       const metric = { type: 'llm', name: 'latency', value: 150, timestamp: 123 };
       act(() => mock.emit('agent-metrics', 'agent-uid', metric));
@@ -235,56 +226,16 @@ describe('Standalone hooks — context path', () => {
 
     it('unsubscribes on unmount', () => {
       const mock = createMockAi();
-      const { unmount } = renderWithContext(() => useAgentMetrics(), mock);
+      const { unmount } = renderWithProvider(() => useAgentMetrics(), mock);
 
       unmount();
       expect(mock.off).toHaveBeenCalledWith('agent-metrics', expect.any(Function));
     });
-  });
-});
 
-describe('Standalone hooks — fallback path (no provider)', () => {
-  beforeEach(() => {
-    mockOn.mockImplementation(() => {});
-    mockOff.mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('useTranscript returns empty array when no context and no singleton', () => {
-    mockGetInstance.mockImplementation(() => { throw new Error('Not initialized'); });
-    const { result } = renderHook(() => useTranscript());
-    expect(result.current).toEqual([]);
-  });
-
-  it('useTranscript falls back to getInstance() when no provider', () => {
-    mockGetInstance.mockReturnValue({ on: mockOn, off: mockOff });
-    const { result } = renderHook(() => useTranscript());
-    // Fallback effect runs, then subscription effect runs
-    expect(result.current).toEqual([]);
-    expect(mockGetInstance).toHaveBeenCalled();
-  });
-
-  it('useAgentState returns nulls when no context and no singleton', () => {
-    mockGetInstance.mockImplementation(() => { throw new Error('Not initialized'); });
-    const { result } = renderHook(() => useAgentState());
-    expect(result.current.agentState).toBeNull();
-    expect(result.current.stateEvent).toBeNull();
-    expect(result.current.agentUserId).toBeNull();
-  });
-
-  it('useAgentError returns null when no context and no singleton', () => {
-    mockGetInstance.mockImplementation(() => { throw new Error('Not initialized'); });
-    const { result } = renderHook(() => useAgentError());
-    expect(result.current.error).toBeNull();
-  });
-
-  it('useAgentMetrics returns nulls when no context and no singleton', () => {
-    mockGetInstance.mockImplementation(() => { throw new Error('Not initialized'); });
-    const { result } = renderHook(() => useAgentMetrics());
-    expect(result.current.metrics).toBeNull();
-    expect(result.current.agentUserId).toBeNull();
+    it('returns nulls without provider', () => {
+      const { result } = renderHook(() => useAgentMetrics());
+      expect(result.current.metrics).toBeNull();
+      expect(result.current.agentUserId).toBeNull();
+    });
   });
 });
