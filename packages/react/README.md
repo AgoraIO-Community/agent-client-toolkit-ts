@@ -13,21 +13,46 @@ npm install @agora/conversational-ai-toolkit-react @agora/conversational-ai-tool
 
 ## Quick Start
 
+Use `ConversationalAIProvider` to manage the AI lifecycle and give standalone hooks access via React context:
+
 ```tsx
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import AgoraRTC, { AgoraRTCProvider } from 'agora-rtc-react';
-import { useConversationalAI, useAgentState } from '@agora/conversational-ai-toolkit-react';
+import {
+  ConversationalAIProvider,
+  useTranscript,
+  useAgentState,
+} from '@agora/conversational-ai-toolkit-react';
 
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
 function App() {
+  const config = useMemo(() => ({ channel: 'my-channel' }), []);
+
   return (
     <AgoraRTCProvider client={client}>
-      <VoiceAI />
+      <ConversationalAIProvider config={config}>
+        <TranscriptPanel />
+        <StatusBar />
+      </ConversationalAIProvider>
     </AgoraRTCProvider>
   );
 }
 
+function TranscriptPanel() {
+  const transcript = useTranscript(); // connects via context — no polling
+  return <ul>{transcript.map((t) => <li key={t.turn_id}>{t.text}</li>)}</ul>;
+}
+
+function StatusBar() {
+  const { agentState } = useAgentState(); // connects via context
+  return <span>{agentState ?? 'idle'}</span>;
+}
+```
+
+Alternatively, use `useConversationalAI` directly for a batteries-included hook:
+
+```tsx
 function VoiceAI() {
   const config = useMemo(() => ({ channel: 'my-channel' }), []);
   const { transcript, agentState, isConnected, interrupt } = useConversationalAI(config);
@@ -42,12 +67,6 @@ function VoiceAI() {
     </div>
   );
 }
-
-function StatusBar() {
-  // Standalone hook — no lifecycle ownership needed
-  const { agentState } = useAgentState();
-  return <span>{agentState ?? 'idle'}</span>;
-}
 ```
 
 ## Prerequisites
@@ -59,6 +78,20 @@ function StatusBar() {
 | `@agora/conversational-ai-toolkit` | >= 0.1.0 |
 
 ## API Reference
+
+### `ConversationalAIProvider`
+
+Provider component that manages the `AgoraVoiceAI` lifecycle and exposes the AI instance via React context to standalone hooks. Use this when you have standalone hooks in child components.
+
+```tsx
+<AgoraRTCProvider client={rtcClient}>
+  <ConversationalAIProvider config={{ channel: 'my-channel' }}>
+    {/* standalone hooks connect instantly via context */}
+    <TranscriptPanel />
+    <StatusBar />
+  </ConversationalAIProvider>
+</AgoraRTCProvider>
+```
 
 ### `useConversationalAI(config)`
 
@@ -115,7 +148,9 @@ const { metrics, agentUserId } = useAgentMetrics();
 
 ## Standalone hooks vs `useConversationalAI`
 
-Both coexist. `useConversationalAI` is the batteries-included option — lifecycle + all events in one return. The standalone hooks (`useTranscript`, `useAgentState`, `useAgentError`, `useAgentMetrics`) are for granular use in components that don't own the lifecycle (e.g. a `<StatusBar>` that only needs agent state). If both are used in the same tree, the same event fires two handlers — this is expected.
+**Recommended:** Use `ConversationalAIProvider` + standalone hooks when you have multiple components that each need a slice of AI state. The provider manages the lifecycle, and standalone hooks connect via React context — no polling, no timing issues.
+
+**Alternative:** Use `useConversationalAI` directly when you only need AI state in one component. Standalone hooks can still work without the provider (they fall back to a single `getInstance()` attempt), but the provider is the recommended pattern for component trees.
 
 ```tsx
 function StatusBar() {

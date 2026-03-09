@@ -6,14 +6,19 @@ import {
   type UserTranscription,
   type AgentTranscription,
 } from '@agora/conversational-ai-toolkit';
+import { useAgoraVoiceAIInstance } from './context';
 
 /**
  * Thin hook for consumers who already have an `AgoraVoiceAI` instance
- * (e.g. via `useConversationalAI`) and want to observe transcript state
- * in a separate component.
+ * (e.g. via `ConversationalAIProvider`) and want to observe transcript
+ * state in a separate component.
  *
  * Binds `TRANSCRIPT_UPDATED` on mount and unbinds on unmount.
  * Returns an empty array if `AgoraVoiceAI` has not been initialized yet.
+ *
+ * When used inside a `ConversationalAIProvider`, connects instantly via
+ * React context. When used without the provider, falls back to a single
+ * `getInstance()` attempt (no polling).
  *
  * @example
  * function TranscriptPanel() {
@@ -24,33 +29,33 @@ import {
 export function useTranscript(): TranscriptHelperItem<
   Partial<UserTranscription | AgentTranscription>
 >[] {
+  const contextAi = useAgoraVoiceAIInstance();
+  const [fallbackAi, setFallbackAi] = useState<AgoraVoiceAI | null>(null);
+
+  // Fallback: single getInstance() attempt for backward compat without provider
+  useEffect(() => {
+    if (contextAi || fallbackAi) return;
+    try {
+      setFallbackAi(AgoraVoiceAI.getInstance());
+    } catch {
+      // Not initialized and no provider — hook returns defaults
+    }
+  }, [contextAi, fallbackAi]);
+
+  const ai = contextAi ?? fallbackAi;
+
   const [transcript, setTranscript] = useState<
     TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[]
   >([]);
 
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    if (!ai) return;
 
-    const tryConnect = () => {
-      try {
-        const ai = AgoraVoiceAI.getInstance();
-        ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
-        cleanup = () => {
-          try { ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript); } catch { /* destroyed */ }
-        };
-      } catch {
-        retryTimer = setTimeout(tryConnect, 100);
-      }
-    };
-
-    tryConnect();
-
+    ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript);
     return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      cleanup?.();
+      try { ai.off(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, setTranscript); } catch { /* destroyed */ }
     };
-  }, []);
+  }, [ai]);
 
   return transcript;
 }

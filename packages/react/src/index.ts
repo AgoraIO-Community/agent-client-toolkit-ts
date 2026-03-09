@@ -1,4 +1,4 @@
-export { useConversationalAI } from './use-conversational-ai';
+export { useConversationalAI, ConversationalAIProvider } from './use-conversational-ai';
 export type {
   UseConversationalAIConfig,
   UseConversationalAIReturn,

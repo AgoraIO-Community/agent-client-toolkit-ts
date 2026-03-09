@@ -4,6 +4,7 @@ import {
   AgoraVoiceAIEvents,
   type AgentMetric,
 } from '@agora/conversational-ai-toolkit';
+import { useAgoraVoiceAIInstance } from './context';
 
 export interface UseAgentMetricsReturn {
   /** Latest agent metric. Null until the first AGENT_METRICS event. */
@@ -19,8 +20,9 @@ export interface UseAgentMetricsReturn {
  * Useful for latency displays and debugging UIs. Returns the latest
  * metric (module type, name, value, timestamp) and the agent UID.
  *
- * If `AgoraVoiceAI` has not been initialized yet, returns nulls until
- * initialization completes.
+ * When used inside a `ConversationalAIProvider`, connects instantly via
+ * React context. When used without the provider, falls back to a single
+ * `getInstance()` attempt (no polling).
  *
  * @example
  * function LatencyDisplay() {
@@ -30,37 +32,37 @@ export interface UseAgentMetricsReturn {
  * }
  */
 export function useAgentMetrics(): UseAgentMetricsReturn {
+  const contextAi = useAgoraVoiceAIInstance();
+  const [fallbackAi, setFallbackAi] = useState<AgoraVoiceAI | null>(null);
+
+  // Fallback: single getInstance() attempt for backward compat without provider
+  useEffect(() => {
+    if (contextAi || fallbackAi) return;
+    try {
+      setFallbackAi(AgoraVoiceAI.getInstance());
+    } catch {
+      // Not initialized and no provider — hook returns defaults
+    }
+  }, [contextAi, fallbackAi]);
+
+  const ai = contextAi ?? fallbackAi;
+
   const [metrics, setMetrics] = useState<AgentMetric | null>(null);
   const [agentUserId, setAgentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    if (!ai) return;
 
     const handler = (userId: string, m: AgentMetric) => {
       setMetrics(m);
       setAgentUserId(userId);
     };
 
-    const tryConnect = () => {
-      try {
-        const ai = AgoraVoiceAI.getInstance();
-        ai.on(AgoraVoiceAIEvents.AGENT_METRICS, handler);
-        cleanup = () => {
-          try { ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handler); } catch { /* destroyed */ }
-        };
-      } catch {
-        retryTimer = setTimeout(tryConnect, 100);
-      }
-    };
-
-    tryConnect();
-
+    ai.on(AgoraVoiceAIEvents.AGENT_METRICS, handler);
     return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      cleanup?.();
+      try { ai.off(AgoraVoiceAIEvents.AGENT_METRICS, handler); } catch { /* destroyed */ }
     };
-  }, []);
+  }, [ai]);
 
   return { metrics, agentUserId };
 }
