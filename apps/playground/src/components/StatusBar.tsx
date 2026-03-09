@@ -1,5 +1,5 @@
-import { useAgentState } from '@agora/agent-client-toolkit-react';
-import { AgentState } from '@agora/agent-client-toolkit';
+import { useAgentState } from 'agora-agent-client-toolkit-react';
+import { AgentState } from 'agora-agent-client-toolkit';
 import { useSession } from './SessionProvider';
 
 const STATE_COLORS: Record<string, string> = {

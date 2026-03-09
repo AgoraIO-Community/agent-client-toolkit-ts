@@ -1,13 +1,13 @@
-# @agora/agent-client-toolkit-react
+# agora-agent-client-toolkit-react
 
-React hooks for `@agora/agent-client-toolkit`. Bridges the `AgoraVoiceAI` singleton into React state and effects.
+React hooks for `agora-agent-client-toolkit`. Bridges the `AgoraVoiceAI` singleton into React state and effects.
 
 For RTC primitives (microphone tracks, camera tracks, remote users, volume levels), use `agora-rtc-react` directly — this package focuses exclusively on toolkit-specific concerns.
 
 ## Install
 
 ```bash
-npm install @agora/agent-client-toolkit-react @agora/agent-client-toolkit agora-rtc-react
+npm install agora-agent-client-toolkit-react agora-agent-client-toolkit agora-rtc-react
 # agora-rtc-sdk-ng is a transitive peer dep — no separate install needed
 ```
 
@@ -22,7 +22,7 @@ import {
   ConversationalAIProvider,
   useTranscript,
   useAgentState,
-} from '@agora/agent-client-toolkit-react';
+} from 'agora-agent-client-toolkit-react';
 
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
@@ -75,7 +75,7 @@ function VoiceAI() {
 |-------------|---------|
 | React | >= 18 |
 | `agora-rtc-react` | >= 2.0.0 |
-| `@agora/agent-client-toolkit` | >= 0.1.0 |
+| `agora-agent-client-toolkit` | >= 0.1.0 |
 
 ## API Reference
 
@@ -197,4 +197,4 @@ See the [agora-rtc-react docs](https://github.com/AgoraIO-Extensions/agora-rtc-r
 
 ## Core package
 
-For vanilla JS / framework-agnostic usage, see [@agora/agent-client-toolkit](../conversational-ai/README.md).
+For vanilla JS / framework-agnostic usage, see [agora-agent-client-toolkit](../conversational-ai/README.md).

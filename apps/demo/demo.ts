@@ -1,5 +1,5 @@
 /**
- * Demo: How to use @agora/agent-client-toolkit
+ * Demo: How to use agora-agent-client-toolkit
  *
  * This demo demonstrates the complete workflow:
  * 1. Create RTC + RTM clients
@@ -17,7 +17,7 @@ import {
   ChatMessagePriority,
   TranscriptHelperMode,
   AgentState,
-} from '@agora/agent-client-toolkit';
+} from 'agora-agent-client-toolkit';
 // ========================================
 // Configuration - Replace with your values
 // ========================================

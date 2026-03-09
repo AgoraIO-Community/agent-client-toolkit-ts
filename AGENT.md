@@ -6,8 +6,8 @@ Reference for AI agents working in this repository.
 
 A pnpm monorepo containing:
 
-- **`@agora/agent-client-toolkit`** — framework-agnostic TypeScript SDK for Agora Conversational AI
-- **`@agora/agent-client-toolkit-react`** — React hooks wrapping the core SDK
+- **`agora-agent-client-toolkit`** — framework-agnostic TypeScript SDK for Agora Conversational AI
+- **`agora-agent-client-toolkit-react`** — React hooks wrapping the core SDK
 - **`apps/demo`** — vanilla TS demo (Vite)
 - **`apps/playground`** — interactive playground
 
@@ -29,11 +29,11 @@ pnpm --filter <name> typecheck
 | React hooks | `packages/react/src/` |
 | Demo | `apps/demo/` |
 
-> The tsup build for `@agora/agent-client-toolkit` reads from `src/` (via `../../src` in `packages/conversational-ai/tsup.config.ts`). There is no source in `packages/conversational-ai/src/`.
+> The tsup build for `agora-agent-client-toolkit` reads from `src/` (via `../../src` in `packages/conversational-ai/tsup.config.ts`). There is no source in `packages/conversational-ai/src/`.
 
 ## Public API surface
 
-Exports from `@agora/agent-client-toolkit`:
+Exports from `agora-agent-client-toolkit`:
 
 - `AgoraVoiceAI` — main singleton class (async `init()`)
 - `AgoraVoiceAIConfig`, `RTMConfig` — config interfaces
@@ -43,7 +43,7 @@ Exports from `@agora/agent-client-toolkit`:
 - `IMetricsReporter`, `ConsoleMetricsReporter`, `AgoraMetricsReporter`
 - All types and enums from `src/core/types.ts` and `src/core/events.ts`
 
-Exports from `@agora/agent-client-toolkit-react`:
+Exports from `agora-agent-client-toolkit-react`:
 
 - `useConversationalAI` — flagship lifecycle hook (init/destroy/subscribe + all events)
 - `useTranscript` — standalone transcript observer
@@ -75,8 +75,8 @@ interface AgoraVoiceAIConfig {
 ## Testing
 
 ```bash
-pnpm --filter @agora/agent-client-toolkit test        # run tests once
-pnpm --filter @agora/agent-client-toolkit test:watch  # watch mode
+pnpm --filter agora-agent-client-toolkit test        # run tests once
+pnpm --filter agora-agent-client-toolkit test:watch  # watch mode
 ```
 
 Test files live in `packages/conversational-ai/__tests__/`. Current coverage:

@@ -1,11 +1,11 @@
-# @agora/agent-client-toolkit
+# agora-agent-client-toolkit
 
 Framework-agnostic TypeScript SDK for building real-time conversational AI experiences with Agora RTC and RTM.
 
 ## Install
 
 ```bash
-npm install @agora/agent-client-toolkit agora-rtc-sdk-ng
+npm install agora-agent-client-toolkit agora-rtc-sdk-ng
 # RTM is optional — only required for sendText, sendImage, interrupt
 npm install agora-rtm
 ```
@@ -18,7 +18,7 @@ import {
   AgoraVoiceAI,
   AgoraVoiceAIEvents,
   TranscriptHelperMode,
-} from '@agora/agent-client-toolkit';
+} from 'agora-agent-client-toolkit';
 // 1. Create the RTC client
 const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
@@ -311,7 +311,7 @@ import {
   AgoraVoiceAIEvents,
   RTMRequiredError,
   ModuleType,
-} from '@agora/agent-client-toolkit';
+} from 'agora-agent-client-toolkit';
 
 // Catch thrown errors
 try {

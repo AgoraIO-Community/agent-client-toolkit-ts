@@ -1,4 +1,4 @@
-import { useAgentError } from '@agora/agent-client-toolkit-react';
+import { useAgentError } from 'agora-agent-client-toolkit-react';
 
 /**
  * Displays the latest error from useAgentError() as a dismissible toast.

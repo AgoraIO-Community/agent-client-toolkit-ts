@@ -12,7 +12,7 @@ pnpm -r build                         # build all packages
 pnpm --filter <package-name> <script> # run a script in one package
 ```
 
-Package filter names: `@agora/agent-client-toolkit`, `@agora/agent-client-toolkit-react`, `@agora/conversational-ai-demo`.
+Package filter names: `agora-agent-client-toolkit`, `agora-agent-client-toolkit-react`, `agora-conversational-ai-demo`.
 
 ## Source layout
 
@@ -30,13 +30,13 @@ apps/playground/                  ← interactive playground
 
 ```bash
 # Core package
-pnpm --filter @agora/agent-client-toolkit build
+pnpm --filter agora-agent-client-toolkit build
 
 # React package
-pnpm --filter @agora/agent-client-toolkit-react build
+pnpm --filter agora-agent-client-toolkit-react build
 
 # Type check only (no emit)
-pnpm --filter @agora/agent-client-toolkit typecheck
+pnpm --filter agora-agent-client-toolkit typecheck
 ```
 
 ## Do not touch
@@ -56,8 +56,8 @@ The rendering controller is the most complex and highest-risk module in the code
 
 | What you type | Resolves to |
 |---------------|-------------|
-| `@agora/agent-client-toolkit` | core SDK |
-| `@agora/agent-client-toolkit-react` | React hooks |
+| `agora-agent-client-toolkit` | core SDK |
+| `agora-agent-client-toolkit-react` | React hooks |
 
 ## Optional dependencies
 
