@@ -18,7 +18,7 @@ import {
   type AgentMetric,
   type ModuleError,
   type MessageReceipt,
-} from 'agora-agent-client-toolkit';
+} from 'agent-client-toolkit-ts';
 import { AgoraVoiceAIContext } from './context';
 
 export interface UseConversationalAIConfig extends Omit<AgoraVoiceAIConfig, 'rtcEngine'> {
@@ -81,8 +81,8 @@ function useConversationalAICore(config: UseConversationalAIConfig): UseConversa
       if (configRef.current !== config && configRef.current.channel === config.channel) {
         console.warn(
           '[useConversationalAI] Config object changed identity but channel is the same. ' +
-            'Wrap your config in useMemo() to avoid unnecessary re-initialization. ' +
-            'See: https://react.dev/reference/react/useMemo'
+          'Wrap your config in useMemo() to avoid unnecessary re-initialization. ' +
+          'See: https://react.dev/reference/react/useMemo'
         );
       }
     }

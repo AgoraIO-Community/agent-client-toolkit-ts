@@ -17,7 +17,7 @@ import {
   ChatMessagePriority,
   TranscriptHelperMode,
   AgentState,
-} from 'agora-agent-client-toolkit';
+} from 'agent-client-toolkit-ts';
 // ========================================
 // Configuration - Replace with your values
 // ========================================

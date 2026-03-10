@@ -3,22 +3,22 @@ import {
   AgoraVoiceAIEvents,
   type ModuleError,
   type ChatMessageType,
-} from 'agora-agent-client-toolkit';
+} from 'agent-client-toolkit-ts';
 import { useAgoraVoiceAIInstance } from './context';
 
 /** Discriminated union for errors from both AGENT_ERROR and MESSAGE_ERROR events. */
 export type AgentErrorEvent =
   | { source: 'agent'; agentUserId: string; error: ModuleError }
   | {
-      source: 'message';
-      agentUserId: string;
-      error: {
-        type: ChatMessageType;
-        code: number;
-        message: string;
-        timestamp: number;
-      };
+    source: 'message';
+    agentUserId: string;
+    error: {
+      type: ChatMessageType;
+      code: number;
+      message: string;
+      timestamp: number;
     };
+  };
 
 export interface UseAgentErrorReturn {
   /** Latest error from AGENT_ERROR or MESSAGE_ERROR. Null until an error occurs. */

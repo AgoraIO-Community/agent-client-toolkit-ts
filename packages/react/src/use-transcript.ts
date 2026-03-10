@@ -4,7 +4,7 @@ import {
   type TranscriptHelperItem,
   type UserTranscription,
   type AgentTranscription,
-} from 'agora-agent-client-toolkit';
+} from 'agent-client-toolkit-ts';
 import { useAgoraVoiceAIInstance } from './context';
 
 /**

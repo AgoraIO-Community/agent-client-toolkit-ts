@@ -1,5 +1,5 @@
 {
-  "name": "agora-agent-client-toolkit-react",
+  "name": "agent-client-toolkit-react",
   "version": "0.1.0",
   "description": "React hooks for Agora Agent Client Toolkit",
   "main": "./dist/index.js",
@@ -31,7 +31,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
-    "agora-agent-client-toolkit": "workspace:*",
+    "agent-client-toolkit-ts": "workspace:*",
     "agora-rtc-react": ">=2.0.0",
     "react": ">=18.0.0"
   },

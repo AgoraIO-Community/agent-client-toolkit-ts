@@ -16,8 +16,8 @@ import {
   ChatMessageType,
   ChatMessagePriority,
   type AgoraVoiceAIState,
-} from 'agora-agent-client-toolkit';
-import { ConversationalAIProvider } from 'agora-agent-client-toolkit-react';
+} from 'agent-client-toolkit-ts';
+import { ConversationalAIProvider } from 'agent-client-toolkit-react';
 import type { Credentials } from './ConfigForm';
 import { StatusBar } from './StatusBar';
 import { TranscriptPanel } from './TranscriptPanel';

@@ -10,7 +10,7 @@ export default defineConfig({
     'react',
     'react-dom',
     'agora-rtc-react',
-    'agora-agent-client-toolkit',
+    'agent-client-toolkit-ts',
   ],
   treeshake: true,
 });

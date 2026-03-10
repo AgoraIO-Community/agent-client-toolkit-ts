@@ -1,5 +1,5 @@
 {
-  "name": "agora-agent-client-toolkit",
+  "name": "agent-client-toolkit-ts",
   "version": "0.1.0",
   "description": "Agora Agent Client Toolkit — real-time voice agent integration for web",
   "main": "./dist/index.js",
@@ -15,7 +15,10 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist", "LICENSE"],
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "engines": {
     "node": ">=18.0.0"
@@ -35,7 +38,9 @@
     "agora-rtm": ">=2.0.0"
   },
   "peerDependenciesMeta": {
-    "agora-rtm": { "optional": true }
+    "agora-rtm": {
+      "optional": true
+    }
   },
   "optionalDependencies": {
     "jszip": ">=3.0.0",
