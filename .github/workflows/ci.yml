@@ -77,28 +77,30 @@ jobs:
 
       - name: Publish core to npm
         run: |
-          PACKAGE_NAME=$(node -p "require('./packages/conversational-ai/package.json').name")
-          LOCAL_VERSION=$(node -p "require('./packages/conversational-ai/package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
           REMOTE_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "")
           if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
             echo "Skipping $PACKAGE_NAME@$LOCAL_VERSION (already published)"
           else
             echo "Publishing $PACKAGE_NAME@$LOCAL_VERSION"
-            npm publish --provenance --access public --workspace packages/conversational-ai
+            npm publish --provenance --access public
           fi
+        working-directory: packages/conversational-ai
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish react to npm
         run: |
-          PACKAGE_NAME=$(node -p "require('./packages/react/package.json').name")
-          LOCAL_VERSION=$(node -p "require('./packages/react/package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
           REMOTE_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "")
           if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
             echo "Skipping $PACKAGE_NAME@$LOCAL_VERSION (already published)"
           else
             echo "Publishing $PACKAGE_NAME@$LOCAL_VERSION"
-            npm publish --provenance --access public --workspace packages/react
+            npm publish --provenance --access public
           fi
+        working-directory: packages/react
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
