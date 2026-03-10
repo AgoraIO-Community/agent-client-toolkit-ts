@@ -10,15 +10,15 @@ import { useAgoraVoiceAIInstance } from './context';
 export type AgentErrorEvent =
   | { source: 'agent'; agentUserId: string; error: ModuleError }
   | {
-    source: 'message';
-    agentUserId: string;
-    error: {
-      type: ChatMessageType;
-      code: number;
-      message: string;
-      timestamp: number;
+      source: 'message';
+      agentUserId: string;
+      error: {
+        type: ChatMessageType;
+        code: number;
+        message: string;
+        timestamp: number;
+      };
     };
-  };
 
 export interface UseAgentErrorReturn {
   /** Latest error from AGENT_ERROR or MESSAGE_ERROR. Null until an error occurs. */
