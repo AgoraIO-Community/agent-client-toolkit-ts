@@ -3,7 +3,7 @@ import {
   AgoraVoiceAIEvents,
   type AgentState,
   type StateChangeEvent,
-} from 'agent-client-toolkit-ts';
+} from 'agora-agent-client-toolkit';
 import { useAgoraVoiceAIInstance } from './context';
 
 export interface UseAgentStateReturn {

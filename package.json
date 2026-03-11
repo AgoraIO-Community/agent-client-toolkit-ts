@@ -1,12 +1,12 @@
 {
-  "name": "agent-client-toolkit-ts",
+  "name": "agora-agent-client-toolkit",
   "version": "0.1.0",
   "private": true,
   "description": "Client-side SDK for adding Agora Conversational AI Engine features.",
   "scripts": {
-    "build": "pnpm --filter agent-client-toolkit-ts build && pnpm --filter agent-client-toolkit-react build",
-    "test": "pnpm --filter agent-client-toolkit-ts test && pnpm --filter agent-client-toolkit-react test",
-    "test:coverage": "pnpm --filter agent-client-toolkit-ts test -- --coverage && pnpm --filter agent-client-toolkit-react test -- --coverage",
+    "build": "pnpm --filter agora-agent-client-toolkit build && pnpm --filter agora-agent-client-toolkit-react build",
+    "test": "pnpm --filter agora-agent-client-toolkit test && pnpm --filter agora-agent-client-toolkit-react test",
+    "test:coverage": "pnpm --filter agora-agent-client-toolkit test -- --coverage && pnpm --filter agora-agent-client-toolkit-react test -- --coverage",
     "lint": "eslint src/ packages/react/src/ apps/",
     "lint:fix": "eslint src/ packages/react/src/ apps/ --fix",
     "format": "prettier --write \"src/**/*.ts\" \"packages/react/src/**/*.ts\" \"apps/**/*.{ts,tsx}\"",

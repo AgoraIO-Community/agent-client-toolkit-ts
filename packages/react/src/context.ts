@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { AgoraVoiceAI } from 'agent-client-toolkit-ts';
+import type { AgoraVoiceAI } from 'agora-agent-client-toolkit';
 
 export const AgoraVoiceAIContext = createContext<AgoraVoiceAI | null>(null);
 
