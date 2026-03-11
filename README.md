@@ -10,7 +10,7 @@ A client-side toolkit for adding Agora Conversational AI features to application
 >
 > ```bash
 > git clone https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts
-> cd agent-client-toolkit-ts && pnpm install && pnpm build
+> cd agora-agent-client-toolkit && pnpm install && pnpm build
 > ```
 
 Once published:
