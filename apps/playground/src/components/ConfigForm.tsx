@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { TranscriptHelperMode } from 'agora-agent-client-toolkit';
+import { TranscriptHelperMode } from 'agent-client-toolkit-ts';
 
 export interface Credentials {
   appId: string;

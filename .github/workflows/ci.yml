@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+    tags:
+      - '*'
   pull_request:
     branches: [main]
 
@@ -32,16 +34,73 @@ jobs:
         run: pnpm format:check
 
       - name: Build core
-        run: pnpm --filter agora-agent-client-toolkit build
+        run: pnpm --filter agent-client-toolkit-ts build
 
       - name: Build React
-        run: pnpm --filter agora-agent-client-toolkit-react build
+        run: pnpm --filter agent-client-toolkit-react build
 
       - name: Typecheck core
-        run: pnpm --filter agora-agent-client-toolkit typecheck
+        run: pnpm --filter agent-client-toolkit-ts typecheck
 
       - name: Test core
-        run: pnpm --filter agora-agent-client-toolkit test
+        run: pnpm --filter agent-client-toolkit-ts test
 
       - name: Test React
-        run: pnpm --filter agora-agent-client-toolkit-react test
+        run: pnpm --filter agent-client-toolkit-react test
+
+  publish:
+    needs: [build-and-test]
+    if: (github.event_name == 'push' && contains(github.ref, 'refs/tags/')) || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish core to npm
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
+          REMOTE_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "")
+          if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
+            echo "Skipping $PACKAGE_NAME@$LOCAL_VERSION (already published)"
+          else
+            echo "Publishing $PACKAGE_NAME@$LOCAL_VERSION"
+            npm publish --provenance --access public
+          fi
+        working-directory: packages/conversational-ai
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish react to npm
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
+          REMOTE_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "")
+          if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
+            echo "Skipping $PACKAGE_NAME@$LOCAL_VERSION (already published)"
+          else
+            echo "Publishing $PACKAGE_NAME@$LOCAL_VERSION"
+            npm publish --provenance --access public
+          fi
+        working-directory: packages/react
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

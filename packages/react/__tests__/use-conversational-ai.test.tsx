@@ -33,7 +33,7 @@ vi.mock('agora-rtc-react', () => ({
   useRTCClient: () => ({ uid: 'mock-client' }),
 }));
 
-vi.mock('agora-agent-client-toolkit', () => ({
+vi.mock('agent-client-toolkit-ts', () => ({
   AgoraVoiceAI: {
     init: (...args: unknown[]) => mockInit(...args),
     getInstance: (...args: unknown[]) => mockGetInstance(...args),
