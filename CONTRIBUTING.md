@@ -29,7 +29,7 @@ pnpm --filter agora-agent-client-toolkit-react test
 ### Run the demo
 
 ```bash
-pnpm --filter @agora/conversational-ai-demo dev  # see apps/demo/README.md
+pnpm --filter agora-conversational-ai-demo dev  # see apps/demo/README.md
 ```
 
 ## Project Structure

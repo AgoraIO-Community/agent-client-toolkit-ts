@@ -38,7 +38,7 @@ Tokens should be generated server-side for production. For local testing, use th
 ### 3. Start the dev server
 
 ```bash
-pnpm --filter @agora/conversational-ai-demo dev
+pnpm --filter agora-conversational-ai-demo dev
 ```
 
 The demo is served at `http://localhost:5173` by default.
@@ -54,7 +54,7 @@ The demo is served at `http://localhost:5173` by default.
 ## Build
 
 ```bash
-pnpm --filter @agora/conversational-ai-demo build
+pnpm --filter agora-conversational-ai-demo build
 ```
 
 Output goes to `apps/demo/dist/`.

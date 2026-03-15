@@ -176,8 +176,8 @@ pnpm -r build         # build all packages
 pnpm test             # run all tests
 
 # Run the demo apps
-pnpm --filter @agora/conversational-ai-demo dev
-pnpm --filter @agora/conversational-ai-playground dev
+pnpm --filter agora-conversational-ai-demo dev
+pnpm --filter agora-conversational-ai-playground dev
 ```
 
 ## License
