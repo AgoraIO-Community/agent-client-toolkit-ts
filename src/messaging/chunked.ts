@@ -5,7 +5,7 @@
  *
  * Where:
  *   message_id  — unique string identifier for this logical message
- *   part_idx    — 0-based index of this chunk
+ *   part_idx    — 1-based index of this chunk (normalized to 0-based internally)
  *   part_sum    — total number of chunks ("???" if unknown, treated as -1)
  *   base64_data — Base64-encoded portion of the complete message payload
  *
@@ -55,7 +55,7 @@ export class ChunkedMessageAssembler {
     if (parts.length !== 4) return null;
 
     const [msgId, partIdxStr, partSumStr, partData] = parts;
-    const part_idx = parseInt(partIdxStr, 10);
+    const part_idx = parseInt(partIdxStr, 10) - 1; // normalize 1-based wire format to 0-based
     const part_sum = partSumStr === '???' ? -1 : parseInt(partSumStr, 10);
 
     // Input validation
