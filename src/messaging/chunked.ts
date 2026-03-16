@@ -73,7 +73,8 @@ export class ChunkedMessageAssembler {
     }
 
     // Server sends 1-based part_idx; normalize to 0-based
-    const part_idx = rawPartIdx > 0 && (part_sum === -1 || rawPartIdx <= part_sum) ? rawPartIdx - 1 : rawPartIdx;
+    const part_idx =
+      rawPartIdx > 0 && (part_sum === -1 || rawPartIdx <= part_sum) ? rawPartIdx - 1 : rawPartIdx;
 
     if (part_idx < 0) {
       if (this.enableLog) {
