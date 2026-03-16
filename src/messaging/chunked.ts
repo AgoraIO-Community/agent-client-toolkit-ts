@@ -72,16 +72,16 @@ export class ChunkedMessageAssembler {
       return null;
     }
 
-    // Server sends 1-based part_idx; normalize to 0-based
-    const part_idx =
-      rawPartIdx > 0 && (part_sum === -1 || rawPartIdx <= part_sum) ? rawPartIdx - 1 : rawPartIdx;
-
-    if (part_idx < 0) {
+    // Wire format is 1-based; reject 0 as invalid before normalizing
+    if (rawPartIdx < 1) {
       if (this.enableLog) {
-        console.warn('[ChunkedMessageAssembler] Negative part index', { msgId });
+        console.warn('[ChunkedMessageAssembler] Invalid part_idx: must be >= 1 (1-based wire format)', { msgId, rawPartIdx });
       }
       return null;
     }
+
+    // Server sends 1-based part_idx; normalize to 0-based
+    const part_idx = rawPartIdx - 1;
     if (part_sum !== -1 && part_idx >= part_sum) {
       if (this.enableLog) {
         console.warn('[ChunkedMessageAssembler] part_idx >= part_sum', {
