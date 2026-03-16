@@ -155,7 +155,11 @@ export class CovSubRenderController {
     const stream_id = message.stream_id;
     const turn_status = TurnStatus.END;
 
-    const resolvedUid = message.object === MessageType.USER_TRANSCRIPTION ? `${CovSubRenderController.self_uid}` : `${uid}`;
+    // Determine uid: user.transcription → self_uid, assistant.transcription → publisher uid
+    const isUserTranscription =
+      (message as unknown as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION;
+    const resolvedUid = isUserTranscription ? `${CovSubRenderController.self_uid}` : `${uid}`;
+
     const targetChatHistoryItem = this._queue.chatHistory.find(
       (item) => item.turn_id === turn_id && item.stream_id === stream_id && item.uid === resolvedUid
     );

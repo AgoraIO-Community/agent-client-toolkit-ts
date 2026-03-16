@@ -55,25 +55,30 @@ export class ChunkedMessageAssembler {
     if (parts.length !== 4) return null;
 
     const [msgId, partIdxStr, partSumStr, partData] = parts;
-    const part_idx = parseInt(partIdxStr, 10) - 1; // normalize 1-based wire format to 0-based
+    const rawPartIdx = parseInt(partIdxStr, 10);
     const part_sum = partSumStr === '???' ? -1 : parseInt(partSumStr, 10);
 
     // Input validation
-    if (isNaN(part_idx) || (part_sum !== -1 && isNaN(part_sum))) {
+    if (isNaN(rawPartIdx) || (part_sum !== -1 && isNaN(part_sum))) {
       if (this.enableLog) {
         console.warn('[ChunkedMessageAssembler] Non-numeric part index/sum', { msgId });
-      }
-      return null;
-    }
-    if (part_idx < 0) {
-      if (this.enableLog) {
-        console.warn('[ChunkedMessageAssembler] Negative part index', { msgId });
       }
       return null;
     }
     if (part_sum !== -1 && part_sum <= 0) {
       if (this.enableLog) {
         console.warn('[ChunkedMessageAssembler] Invalid part_sum', { msgId, part_sum });
+      }
+      return null;
+    }
+
+    // Server sends 1-based part_idx; normalize to 0-based
+    const part_idx =
+      rawPartIdx > 0 && (part_sum === -1 || rawPartIdx <= part_sum) ? rawPartIdx - 1 : rawPartIdx;
+
+    if (part_idx < 0) {
+      if (this.enableLog) {
+        console.warn('[ChunkedMessageAssembler] Negative part index', { msgId });
       }
       return null;
     }

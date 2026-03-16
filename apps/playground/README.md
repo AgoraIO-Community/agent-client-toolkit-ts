@@ -13,7 +13,7 @@ pnpm -r build              # build dependencies first
 cp apps/playground/.env.example apps/playground/.env.local
 
 # Start dev server
-pnpm --filter @agora/conversational-ai-playground dev
+pnpm --filter agora-conversational-ai-playground dev
 ```
 
 Open `http://localhost:3000`. Fill in credentials via the config form or `.env.local`.
@@ -81,5 +81,5 @@ App
 |---------|------|
 | `agora-agent-client-toolkit` | Core SDK — singleton, events, transcript rendering |
 | `agora-agent-client-toolkit-react` | React hooks wrapping the core SDK |
-| `@agora/conversational-ai-playground` | **This app** — consumes both packages for development |
-| `@agora/conversational-ai-demo` | Minimal vanilla TS demo (no React) |
+| `agora-conversational-ai-playground` | **This app** — consumes both packages for development |
+| `agora-conversational-ai-demo` | Minimal vanilla TS demo (no React) |

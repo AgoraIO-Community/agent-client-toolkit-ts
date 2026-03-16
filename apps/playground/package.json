@@ -1,5 +1,5 @@
 {
-  "name": "@agora/conversational-ai-playground",
+  "name": "agora-conversational-ai-playground",
   "version": "0.0.1",
   "private": true,
   "description": "Component playground for agora-agent-client-toolkit-react",
