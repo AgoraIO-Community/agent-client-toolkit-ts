@@ -75,7 +75,10 @@ export class ChunkedMessageAssembler {
     // Wire format is 1-based; reject 0 as invalid before normalizing
     if (rawPartIdx < 1) {
       if (this.enableLog) {
-        console.warn('[ChunkedMessageAssembler] Invalid part_idx: must be >= 1 (1-based wire format)', { msgId, rawPartIdx });
+        console.warn(
+          '[ChunkedMessageAssembler] Invalid part_idx: must be >= 1 (1-based wire format)',
+          { msgId, rawPartIdx }
+        );
       }
       return null;
     }

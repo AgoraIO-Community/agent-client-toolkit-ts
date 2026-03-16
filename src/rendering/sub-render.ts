@@ -207,10 +207,15 @@ export class CovSubRenderController {
       currentTranscript.turn_status !== TurnStatus.IN_PROGRESS &&
       validTranscriptString.length === currentTranscript.text.length;
 
-    const resolvedUid = (currentTranscript as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION ? `${CovSubRenderController.self_uid}` : `${uid}`;
+    const resolvedUid =
+      (currentTranscript as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION
+        ? `${CovSubRenderController.self_uid}`
+        : `${uid}`;
     const targetChatHistoryItem = this._queue.chatHistory.find(
       (item) =>
-        item.turn_id === currentTranscript.turn_id && item.stream_id === currentTranscript.stream_id && item.uid === resolvedUid
+        item.turn_id === currentTranscript.turn_id &&
+        item.stream_id === currentTranscript.stream_id &&
+        item.uid === resolvedUid
     );
     if (!targetChatHistoryItem) {
       this.callMessagePrint(
@@ -483,7 +488,10 @@ export class CovSubRenderController {
       return;
     }
     this._queue.pushToQueue({
-      uid: (message as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION ? `${CovSubRenderController.self_uid}` : `${uid}`,
+      uid:
+        (message as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION
+          ? `${CovSubRenderController.self_uid}`
+          : `${uid}`,
       turn_id,
       words,
       text,

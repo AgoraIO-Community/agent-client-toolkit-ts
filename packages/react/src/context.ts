@@ -52,18 +52,24 @@ export interface ConversationalAIContextValue {
 export function useConversationalAIContext(): ConversationalAIContextValue {
   const instance = useContext(AgoraVoiceAIContext);
 
-  const interrupt = useCallback(async (agentUserId: string) => {
-    await instance?.interrupt(agentUserId);
-  }, [instance]);
+  const interrupt = useCallback(
+    async (agentUserId: string) => {
+      await instance?.interrupt(agentUserId);
+    },
+    [instance]
+  );
 
-  const sendMessage = useCallback(async (agentUserId: string, text: string) => {
-    await instance?.sendText(agentUserId, {
-      messageType: ChatMessageType.TEXT,
-      priority: ChatMessagePriority.INTERRUPTED,
-      responseInterruptable: true,
-      text,
-    });
-  }, [instance]);
+  const sendMessage = useCallback(
+    async (agentUserId: string, text: string) => {
+      await instance?.sendText(agentUserId, {
+        messageType: ChatMessageType.TEXT,
+        priority: ChatMessagePriority.INTERRUPTED,
+        responseInterruptable: true,
+        text,
+      });
+    },
+    [instance]
+  );
 
   return { interrupt, sendMessage, instance };
 }
