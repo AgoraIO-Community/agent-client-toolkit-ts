@@ -4,27 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [v1.1.0] — 2026-03-16
+## [v1.1.0] — 2026-03-17
 
 ### agora-agent-client-toolkit
 
 #### Fixed
 - `ChunkedMessageAssembler`: explicitly reject `rawPartIdx < 1` before normalization — a zero value from the wire (invalid for 1-based format) previously passed through silently as chunk index 0, causing incorrect message assembly
-- `ChunkedMessageAssembler`: simplify `part_idx` normalization to `rawPartIdx - 1` now that the `< 1` guard makes the conditional expression redundant
+- `ChunkedMessageAssembler`: simplified `part_idx` normalization to `rawPartIdx - 1` now that the `< 1` guard makes the conditional expression redundant
 - `CovSubRenderController`: fix uid resolution in `handleTextMessage` and `_handleTranscriptChunk` — uid is now determined by `message.object === MessageType.USER_TRANSCRIPTION` rather than `stream_id` presence, preventing agent transcriptions from being attributed to the wrong uid
 - `SubRenderPTS.setPts()`: allow PTS to reset to `0` on stream restart — previous `pts !== 0` guard blocked this, causing word rendering to freeze after reconnection
-
-#### Changed
-- Packages renamed: `agent-client-toolkit-ts` → `agora-agent-client-toolkit`, `agent-client-toolkit-ts-react` → `agora-agent-client-toolkit-react`
-- Demo and playground packages drop `@agora/` scope prefix
 
 ### agora-agent-client-toolkit-react
 
 #### Fixed
-- `context.ts`: updated context exports to align with renamed core package
+- `context.ts`: updated context exports to correctly reflect renamed core package imports
 
-#### Changed
-- Version aligned to `1.1.0` across all workspace packages
+### Docs
+
+- `README.md`: updated install instructions to use `pnpm add` and removed pre-release note
+- `AGENT.md`: added full test file inventory for core and React packages with commands for both
+- `CLAUDE.md`: added Test section with commands, added `AGENT_ERROR` vs `MESSAGE_ERROR` routing table
+- `CHANGELOG.md`: retroactively corrected v0.1.0 → v1.0.0 for initial release
 
 ---
 
