@@ -5,7 +5,7 @@
  *
  * Where:
  *   message_id  — unique string identifier for this logical message
- *   part_idx    — 0-based index of this chunk
+ *   part_idx    — 1-based index of this chunk (normalized to 0-based internally)
  *   part_sum    — total number of chunks ("???" if unknown, treated as -1)
  *   base64_data — Base64-encoded portion of the complete message payload
  *
@@ -55,19 +55,13 @@ export class ChunkedMessageAssembler {
     if (parts.length !== 4) return null;
 
     const [msgId, partIdxStr, partSumStr, partData] = parts;
-    const part_idx = parseInt(partIdxStr, 10);
+    const rawPartIdx = parseInt(partIdxStr, 10);
     const part_sum = partSumStr === '???' ? -1 : parseInt(partSumStr, 10);
 
     // Input validation
-    if (isNaN(part_idx) || (part_sum !== -1 && isNaN(part_sum))) {
+    if (isNaN(rawPartIdx) || (part_sum !== -1 && isNaN(part_sum))) {
       if (this.enableLog) {
         console.warn('[ChunkedMessageAssembler] Non-numeric part index/sum', { msgId });
-      }
-      return null;
-    }
-    if (part_idx < 0) {
-      if (this.enableLog) {
-        console.warn('[ChunkedMessageAssembler] Negative part index', { msgId });
       }
       return null;
     }
@@ -77,6 +71,20 @@ export class ChunkedMessageAssembler {
       }
       return null;
     }
+
+    // Wire format is 1-based; reject 0 as invalid before normalizing
+    if (rawPartIdx < 1) {
+      if (this.enableLog) {
+        console.warn(
+          '[ChunkedMessageAssembler] Invalid part_idx: must be >= 1 (1-based wire format)',
+          { msgId, rawPartIdx }
+        );
+      }
+      return null;
+    }
+
+    // Server sends 1-based part_idx; normalize to 0-based
+    const part_idx = rawPartIdx - 1;
     if (part_sum !== -1 && part_idx >= part_sum) {
       if (this.enableLog) {
         console.warn('[ChunkedMessageAssembler] part_idx >= part_sum', {

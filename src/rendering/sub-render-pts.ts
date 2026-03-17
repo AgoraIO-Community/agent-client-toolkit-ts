@@ -85,7 +85,7 @@ export class SubRenderPTS {
   }
 
   public setPts(pts: number) {
-    if (this._pts < pts && pts !== 0) {
+    if (pts === 0 || this._pts < pts) {
       this._pts = pts;
     }
   }

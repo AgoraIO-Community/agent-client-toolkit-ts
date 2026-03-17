@@ -1,5 +1,9 @@
-import { createContext, useContext } from 'react';
-import type { AgoraVoiceAI } from 'agora-agent-client-toolkit';
+import { createContext, useCallback, useContext } from 'react';
+import {
+  type AgoraVoiceAI,
+  ChatMessageType,
+  ChatMessagePriority,
+} from 'agora-agent-client-toolkit';
 
 export const AgoraVoiceAIContext = createContext<AgoraVoiceAI | null>(null);
 
@@ -7,8 +11,65 @@ export const AgoraVoiceAIContext = createContext<AgoraVoiceAI | null>(null);
  * Returns the AgoraVoiceAI instance from the nearest provider,
  * or null if useConversationalAI hasn't initialized yet.
  *
- * Internal — not exported from the package index.
+ * Internal — used by standalone hooks (useTranscript, useAgentState, etc.).
  */
 export function useAgoraVoiceAIInstance(): AgoraVoiceAI | null {
   return useContext(AgoraVoiceAIContext);
+}
+
+/**
+ * Controls returned by `useConversationalAIContext`.
+ */
+export interface ConversationalAIContextValue {
+  /** Send an interrupt signal to the agent. Requires RTM. */
+  interrupt: (agentUserId: string) => Promise<void>;
+  /** Send a plain-text message to the agent. Requires RTM. */
+  sendMessage: (agentUserId: string, text: string) => Promise<void>;
+  /** The underlying AgoraVoiceAI instance, or null if not yet initialized. */
+  instance: AgoraVoiceAI | null;
+}
+
+/**
+ * Context-consuming hook for components inside a `ConversationalAIProvider`.
+ *
+ * Returns `sendMessage` and `interrupt` without requiring config — the
+ * provider already manages the AgoraVoiceAI lifecycle.
+ *
+ * This is the recommended way for child components to access controls.
+ * For transcript and state data, use the standalone hooks (`useTranscript`,
+ * `useAgentState`, etc.) instead.
+ *
+ * @throws Error if used outside a ConversationalAIProvider
+ *
+ * @example
+ * ```tsx
+ * function ChatInput({ agentUid }: { agentUid: string }) {
+ *   const { sendMessage, interrupt } = useConversationalAIContext();
+ *   // ...
+ * }
+ * ```
+ */
+export function useConversationalAIContext(): ConversationalAIContextValue {
+  const instance = useContext(AgoraVoiceAIContext);
+
+  const interrupt = useCallback(
+    async (agentUserId: string) => {
+      await instance?.interrupt(agentUserId);
+    },
+    [instance]
+  );
+
+  const sendMessage = useCallback(
+    async (agentUserId: string, text: string) => {
+      await instance?.sendText(agentUserId, {
+        messageType: ChatMessageType.TEXT,
+        priority: ChatMessagePriority.INTERRUPTED,
+        responseInterruptable: true,
+        text,
+      });
+    },
+    [instance]
+  );
+
+  return { interrupt, sendMessage, instance };
 }

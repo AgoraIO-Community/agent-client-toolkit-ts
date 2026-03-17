@@ -39,6 +39,19 @@ pnpm --filter agora-agent-client-toolkit-react build
 pnpm --filter agora-agent-client-toolkit typecheck
 ```
 
+## Test
+
+```bash
+# Core SDK
+pnpm --filter agora-agent-client-toolkit test
+
+# React hooks
+pnpm --filter agora-agent-client-toolkit-react test
+
+# Format check (runs in CI)
+pnpm format:check
+```
+
 ## Do not touch
 
 **`src/rendering/sub-render.ts`, `src/rendering/sub-render-queue.ts`, `src/rendering/sub-render-pts.ts`**
@@ -58,6 +71,17 @@ The rendering controller is the most complex and highest-risk module in the code
 |---------------|-------------|
 | `agora-agent-client-toolkit` | core SDK |
 | `agora-agent-client-toolkit-react` | React hooks |
+
+## Error event routing
+
+Two error events exist — do not conflate them:
+
+| Event | When it fires | Handler |
+|-------|--------------|---------|
+| `AGENT_ERROR` | Agent-side module error (TTS, STT, LLM failures) | `onAgentError(uid, { type, code, message, timestamp })` |
+| `MESSAGE_ERROR` | Client-side message delivery failure (image upload rejected, context parse error) | `onMessageError(uid, { type, code, message, timestamp })` |
+
+When adding error handling: agent runtime failures → `AGENT_ERROR`. Outbound message failures → `MESSAGE_ERROR`.
 
 ## Optional dependencies
 

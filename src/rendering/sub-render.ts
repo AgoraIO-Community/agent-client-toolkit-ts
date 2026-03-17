@@ -149,20 +149,25 @@ export class CovSubRenderController {
     this.onChatHistoryUpdated?.(this._queue.chatHistory);
   }
 
-  protected handleTextMessage(uid: string, message: UserTranscription) {
+  protected handleTextMessage(uid: string, message: UserTranscription | AgentTranscription) {
     const turn_id = message.turn_id;
     const text = message.text || '';
     const stream_id = message.stream_id;
     const turn_status = TurnStatus.END;
 
+    // Determine uid: user.transcription → self_uid, assistant.transcription → publisher uid
+    const isUserTranscription =
+      (message as unknown as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION;
+    const resolvedUid = isUserTranscription ? `${CovSubRenderController.self_uid}` : `${uid}`;
+
     const targetChatHistoryItem = this._queue.chatHistory.find(
-      (item) => item.turn_id === turn_id && item.stream_id === stream_id
+      (item) => item.turn_id === turn_id && item.stream_id === stream_id && item.uid === resolvedUid
     );
     if (!targetChatHistoryItem) {
       this.callMessagePrint(ELoggerType.debug, `[Text Mode]`, `[${uid}]`, 'new item', message);
       this._queue.appendChatHistory({
         turn_id,
-        uid: message.stream_id ? `${CovSubRenderController.self_uid}` : `${uid}`,
+        uid: resolvedUid,
         stream_id,
         _time: new Date().getTime(),
         text,
@@ -202,9 +207,15 @@ export class CovSubRenderController {
       currentTranscript.turn_status !== TurnStatus.IN_PROGRESS &&
       validTranscriptString.length === currentTranscript.text.length;
 
+    const resolvedUid =
+      (currentTranscript as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION
+        ? `${CovSubRenderController.self_uid}`
+        : `${uid}`;
     const targetChatHistoryItem = this._queue.chatHistory.find(
       (item) =>
-        item.turn_id === currentTranscript.turn_id && item.stream_id === currentTranscript.stream_id
+        item.turn_id === currentTranscript.turn_id &&
+        item.stream_id === currentTranscript.stream_id &&
+        item.uid === resolvedUid
     );
     if (!targetChatHistoryItem) {
       this.callMessagePrint(
@@ -216,7 +227,7 @@ export class CovSubRenderController {
       );
       this._queue.appendChatHistory({
         turn_id: currentTranscript.turn_id,
-        uid: currentTranscript.stream_id ? `${CovSubRenderController.self_uid}` : `${uid}`,
+        uid: resolvedUid,
         stream_id: currentTranscript.stream_id,
         _time: Date.now(),
         text: validTranscriptString,
@@ -477,7 +488,10 @@ export class CovSubRenderController {
       return;
     }
     this._queue.pushToQueue({
-      uid: message.stream_id ? `${CovSubRenderController.self_uid}` : `${uid}`,
+      uid:
+        (message as TranscriptionBase).object === MessageType.USER_TRANSCRIPTION
+          ? `${CovSubRenderController.self_uid}`
+          : `${uid}`,
       turn_id,
       words,
       text,
@@ -556,7 +570,7 @@ export class CovSubRenderController {
       return;
     }
     if (isAgentMessage && this._mode === TranscriptHelperMode.TEXT) {
-      this.handleTextMessage(options.publisher, message as unknown as UserTranscription);
+      this.handleTextMessage(options.publisher, message as unknown as AgentTranscription);
       return;
     }
     if (isAgentMessage && this._mode === TranscriptHelperMode.CHUNK) {

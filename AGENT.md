@@ -75,12 +75,25 @@ interface AgoraVoiceAIConfig {
 ## Testing
 
 ```bash
-pnpm --filter agora-agent-client-toolkit test        # run tests once
+# Core SDK tests
+pnpm --filter agora-agent-client-toolkit test        # run once
 pnpm --filter agora-agent-client-toolkit test:watch  # watch mode
+
+# React hooks tests
+pnpm --filter agora-agent-client-toolkit-react test
+pnpm --filter agora-agent-client-toolkit-react test:watch
 ```
 
-Test files live in `packages/conversational-ai/__tests__/`. Current coverage:
-- `chunked.test.ts` — `ChunkedMessageAssembler` (10 cases)
-- `lifecycle.test.ts` — `AgoraVoiceAI` singleton lifecycle (9 cases)
+Core test files live in `packages/conversational-ai/__tests__/`:
+- `chunked.test.ts` — `ChunkedMessageAssembler` assembly logic
+- `chunked-validation.test.ts` — `ChunkedMessageAssembler` input validation
+- `lifecycle.test.ts` — `AgoraVoiceAI` singleton lifecycle
+- `messaging.test.ts` — RTM/RTC message handling
+- `event-handlers.test.ts` — event emission and handler registration
+- `concurrency.test.ts` — concurrent init and race conditions
+
+React hook test files live in `packages/react/__tests__/`:
+- `use-conversational-ai.test.tsx` — `useConversationalAI` lifecycle and state
+- `standalone-hooks.test.tsx` — `useTranscript`, `useAgentState`, `useAgentError`, `useAgentMetrics`
 
 Functional validation against real agent traffic still requires Agora sandbox credentials.
