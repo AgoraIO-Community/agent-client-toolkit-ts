@@ -6,21 +6,12 @@ A client-side toolkit for adding Agora Conversational AI features to application
 
 ## Install
 
-> **Not yet published to npm.** Install directly from GitHub:
->
-> ```bash
-> git clone https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts
-> cd agora-agent-client-toolkit && pnpm install && pnpm build
-> ```
-
-Once published:
-
 ```bash
 # Vanilla JS / TypeScript
-npm install agora-agent-client-toolkit
+pnpm add agora-agent-client-toolkit
 
 # React
-npm install agora-agent-client-toolkit-react
+pnpm add agora-agent-client-toolkit-react
 ```
 
 ## Quick Start
@@ -137,8 +128,8 @@ function VoiceSession() {
 
 | Package                                                                      | Version | Description                        |
 | ---------------------------------------------------------------------------- | ------- | ---------------------------------- |
-| [`agora-agent-client-toolkit`](./packages/conversational-ai/README.md) | 0.1.0   | Core SDK — vanilla JS / TypeScript |
-| [`agora-agent-client-toolkit-react`](./packages/react/README.md)       | 0.1.0   | React hooks                        |
+| [`agora-agent-client-toolkit`](./packages/conversational-ai/README.md) | 1.1.0   | Core SDK — vanilla JS / TypeScript |
+| [`agora-agent-client-toolkit-react`](./packages/react/README.md)       | 1.1.0   | React hooks                        |
 
 Full API reference, configuration options, and events are in each package's README.
 
