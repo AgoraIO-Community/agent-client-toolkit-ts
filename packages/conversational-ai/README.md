@@ -5,9 +5,9 @@ Framework-agnostic TypeScript SDK for building real-time conversational AI exper
 ## Install
 
 ```bash
-npm install agora-agent-client-toolkit agora-rtc-sdk-ng
+pnpm add agora-agent-client-toolkit agora-rtc-sdk-ng
 # RTM is optional — only required for sendText, sendImage, interrupt
-npm install agora-rtm
+pnpm add agora-rtm
 ```
 
 ## Quick Start

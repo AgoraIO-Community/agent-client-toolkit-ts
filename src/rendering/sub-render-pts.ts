@@ -85,7 +85,8 @@ export class SubRenderPTS {
   }
 
   public setPts(pts: number) {
-    if (pts === 0 || this._pts < pts) {
+    // Only advance PTS — never rewind. Zero values are no-ops; reset() handles session cleanup.
+    if (pts > 0 && pts > this._pts) {
       this._pts = pts;
     }
   }

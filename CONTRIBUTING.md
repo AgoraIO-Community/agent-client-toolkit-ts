@@ -59,7 +59,14 @@ apps/playground/                  # Interactive playground
 
 1. Create a feature branch from `main` (e.g. `feat/add-new-hook`, `fix/destroy-race`).
 2. Make your changes. Add or update tests as appropriate.
-3. Run `pnpm -r build` and `pnpm --filter agora-agent-client-toolkit test` before pushing.
+3. Before pushing, run:
+   ```bash
+   pnpm -r build
+   pnpm --filter agora-agent-client-toolkit test
+   pnpm --filter agora-agent-client-toolkit-react test
+   pnpm --filter agora-agent-client-toolkit typecheck
+   pnpm format:check
+   ```
 4. Open a PR with a clear description of what changed and why.
 5. Keep PRs focused — one feature or fix per PR.
 
@@ -69,6 +76,7 @@ apps/playground/                  # Interactive playground
 - React hook tests use `@testing-library/react` with `renderHook`. Test files live in `packages/react/__tests__/`.
 - All new public API surface should have corresponding tests.
 - Test error paths, not just happy paths.
+- Coverage targets: 70% lines/functions, 60% branches on core SDK. Do not reduce existing coverage.
 
 ## Reporting Issues
 

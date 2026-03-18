@@ -145,7 +145,8 @@ export class SubRenderQueue {
     }
     const isRestWordsEmpty = restWords.length === 0;
     const isLastWordFinal =
-      validWords[validWords.length - 1]?.word_status !== TurnStatus.IN_PROGRESS;
+      validWords.length > 0 &&
+      validWords[validWords.length - 1].word_status !== TurnStatus.IN_PROGRESS;
     // All words rendered and final — turn is complete
     if (isRestWordsEmpty && isLastWordFinal) {
       correspondingChatHistoryItem.text = queueItem.text;
@@ -159,7 +160,8 @@ export class SubRenderQueue {
       .join('');
     correspondingChatHistoryItem.text = validWordsText;
     const isLastWordInterrupted =
-      validWords[validWords.length - 1]?.word_status === TurnStatus.INTERRUPTED;
+      validWords.length > 0 &&
+      validWords[validWords.length - 1].word_status === TurnStatus.INTERRUPTED;
     if (isLastWordInterrupted) {
       this.lastPoppedQueueItem = this.queue.shift();
       return;

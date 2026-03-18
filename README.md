@@ -162,9 +162,17 @@ Three methods require RTM and throw if called without it: `sendText`, `sendImage
 This repo uses [pnpm workspaces](https://pnpm.io/workspaces).
 
 ```bash
-pnpm install          # install all dependencies
-pnpm -r build         # build all packages
-pnpm test             # run all tests
+# Setup
+pnpm install
+pnpm -r build
+
+# Test
+pnpm --filter agora-agent-client-toolkit test
+pnpm --filter agora-agent-client-toolkit-react test
+
+# Type check
+pnpm --filter agora-agent-client-toolkit typecheck
+pnpm --filter agora-agent-client-toolkit-react typecheck
 
 # Run the demo apps
 pnpm --filter agora-conversational-ai-demo dev
