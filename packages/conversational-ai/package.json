@@ -1,6 +1,6 @@
 {
   "name": "agora-agent-client-toolkit",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Agora Agent Client Toolkit — real-time voice agent integration for web",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -27,6 +27,7 @@
     "build": "tsup",
     "build:watch": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "typecheck:interop": "tsc -p __typetests__/tsconfig.json --noEmit",
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",

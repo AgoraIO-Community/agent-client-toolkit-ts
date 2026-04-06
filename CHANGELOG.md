@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [v1.2.0] — 2026-04-06
+
+### agora-agent-client-toolkit
+
+#### Changed
+- TypeScript public config contracts now use toolkit-owned structural interfaces: `RTCEngine` and `RTMEngine`
+- `AgoraVoiceAI.init()` now accepts compatible RTC/RTM client objects without requiring `as unknown as` casts in strict package-manager layouts
+- Public type surface no longer depends on `agora-rtm` event/class types (`RTMClient`, `RTMEvents`) for config and transcript event payload typing
+
+#### Added
+- Interop type-check fixture: `packages/conversational-ai/__typetests__/interop.ts` with `typecheck:interop` script
+
+### agora-agent-client-toolkit-react
+
+#### Changed
+- Removed internal `rtcEngine` cast workaround when passing `useRTCClient()` into `AgoraVoiceAI.init()`
+
 ## [v1.1.0] — 2026-03-17
 
 ### agora-agent-client-toolkit
