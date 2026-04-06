@@ -19,7 +19,7 @@ describe('ChunkedMessageAssembler', () => {
 
   it('1. single chunk — returns decoded object immediately', () => {
     const payload = { object: 'test', value: 42 };
-    const raw = chunk('msg1', 0, 1, encode(payload));
+    const raw = chunk('msg1', 1, 1, encode(payload));
     const result = assembler.assemble(raw);
     expect(result).toEqual(payload);
   });
@@ -33,9 +33,9 @@ describe('ChunkedMessageAssembler', () => {
     const p1 = full.slice(third, third * 2);
     const p2 = full.slice(third * 2);
 
-    expect(assembler.assemble(chunk('msg2', 0, 3, p0))).toBeNull();
-    expect(assembler.assemble(chunk('msg2', 1, 3, p1))).toBeNull();
-    const result = assembler.assemble(chunk('msg2', 2, 3, p2));
+    expect(assembler.assemble(chunk('msg2', 1, 3, p0))).toBeNull();
+    expect(assembler.assemble(chunk('msg2', 2, 3, p1))).toBeNull();
+    const result = assembler.assemble(chunk('msg2', 3, 3, p2));
     expect(result).toEqual(payload);
   });
 
@@ -47,9 +47,9 @@ describe('ChunkedMessageAssembler', () => {
     const p1 = full.slice(third, third * 2);
     const p2 = full.slice(third * 2);
 
-    expect(assembler.assemble(chunk('msg3', 2, 3, p2))).toBeNull();
-    expect(assembler.assemble(chunk('msg3', 0, 3, p0))).toBeNull();
-    const result = assembler.assemble(chunk('msg3', 1, 3, p1));
+    expect(assembler.assemble(chunk('msg3', 3, 3, p2))).toBeNull();
+    expect(assembler.assemble(chunk('msg3', 1, 3, p0))).toBeNull();
+    const result = assembler.assemble(chunk('msg3', 2, 3, p1));
     expect(result).toEqual(payload);
   });
 
@@ -60,11 +60,11 @@ describe('ChunkedMessageAssembler', () => {
     const p0 = full.slice(0, half);
     const p1 = full.slice(half);
 
-    assembler.assemble(chunk('msg4', 0, 2, p0));
-    // Send chunk 0 again — should be ignored
-    expect(assembler.assemble(chunk('msg4', 0, 2, p0))).toBeNull();
-    // Now send chunk 1 — assembly should complete
-    const result = assembler.assemble(chunk('msg4', 1, 2, p1));
+    assembler.assemble(chunk('msg4', 1, 2, p0));
+    // Send chunk 1 again — should be ignored
+    expect(assembler.assemble(chunk('msg4', 1, 2, p0))).toBeNull();
+    // Now send chunk 2 — assembly should complete
+    const result = assembler.assemble(chunk('msg4', 2, 2, p1));
     expect(result).toEqual(payload);
   });
 
@@ -72,9 +72,9 @@ describe('ChunkedMessageAssembler', () => {
     const payload = { unknown: true };
     const data = encode(payload);
 
-    expect(assembler.assemble(chunk('msg5', 0, '???', data))).toBeNull();
     expect(assembler.assemble(chunk('msg5', 1, '???', data))).toBeNull();
     expect(assembler.assemble(chunk('msg5', 2, '???', data))).toBeNull();
+    expect(assembler.assemble(chunk('msg5', 3, '???', data))).toBeNull();
   });
 
   it('6. wrong pipe count — returns null immediately', () => {
@@ -84,14 +84,14 @@ describe('ChunkedMessageAssembler', () => {
   });
 
   it('7. malformed base64 — returns null, does not throw', () => {
-    const raw = chunk('msg7', 0, 1, '!!!not-valid-base64!!!');
+    const raw = chunk('msg7', 1, 1, '!!!not-valid-base64!!!');
     expect(() => assembler.assemble(raw)).not.toThrow();
     expect(assembler.assemble(raw)).toBeNull();
   });
 
   it('8. invalid JSON after decode — returns null, does not throw', () => {
     const notJson = btoa('this is not json {{{');
-    const raw = chunk('msg8', 0, 1, notJson);
+    const raw = chunk('msg8', 1, 1, notJson);
     expect(() => assembler.assemble(raw)).not.toThrow();
     expect(assembler.assemble(raw)).toBeNull();
   });
@@ -105,11 +105,11 @@ describe('ChunkedMessageAssembler', () => {
     const halfB = Math.ceil(fullB.length / 2);
 
     // Interleave chunks from two different messages
-    assembler.assemble(chunk('msgA', 0, 2, fullA.slice(0, halfA)));
-    assembler.assemble(chunk('msgB', 0, 2, fullB.slice(0, halfB)));
+    assembler.assemble(chunk('msgA', 1, 2, fullA.slice(0, halfA)));
+    assembler.assemble(chunk('msgB', 1, 2, fullB.slice(0, halfB)));
 
-    const resultA = assembler.assemble(chunk('msgA', 1, 2, fullA.slice(halfA)));
-    const resultB = assembler.assemble(chunk('msgB', 1, 2, fullB.slice(halfB)));
+    const resultA = assembler.assemble(chunk('msgA', 2, 2, fullA.slice(halfA)));
+    const resultB = assembler.assemble(chunk('msgB', 2, 2, fullB.slice(halfB)));
 
     expect(resultA).toEqual(payloadA);
     expect(resultB).toEqual(payloadB);
@@ -121,13 +121,13 @@ describe('ChunkedMessageAssembler', () => {
     const half = Math.ceil(full.length / 2);
 
     // Send first chunk of a 2-part message
-    assembler.assemble(chunk('msg10', 0, 2, full.slice(0, half)));
+    assembler.assemble(chunk('msg10', 1, 2, full.slice(0, half)));
 
     // Clear all state
     assembler.clear();
 
     // The second chunk now arrives but the first is gone — cannot complete
-    const result = assembler.assemble(chunk('msg10', 1, 2, full.slice(half)));
+    const result = assembler.assemble(chunk('msg10', 2, 2, full.slice(half)));
     expect(result).toBeNull();
   });
 });

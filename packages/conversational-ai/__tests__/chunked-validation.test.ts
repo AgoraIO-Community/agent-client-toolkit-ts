@@ -22,12 +22,17 @@ describe('ChunkedMessageAssembler validation', () => {
   });
 
   it('NaN part_sum returns null', () => {
-    const result = assembler.assemble(chunk('msg', '0', 'xyz', encode({ test: true })));
+    const result = assembler.assemble(chunk('msg', '1', 'xyz', encode({ test: true })));
     expect(result).toBeNull();
   });
 
   it('negative part_idx returns null', () => {
     const result = assembler.assemble(chunk('msg', '-1', '5', encode({ test: true })));
+    expect(result).toBeNull();
+  });
+
+  it('zero part_idx returns null', () => {
+    const result = assembler.assemble(chunk('msg', '0', '5', encode({ test: true })));
     expect(result).toBeNull();
   });
 
@@ -42,12 +47,12 @@ describe('ChunkedMessageAssembler validation', () => {
   });
 
   it('part_sum === 0 returns null', () => {
-    const result = assembler.assemble(chunk('msg', '0', '0', encode({ test: true })));
+    const result = assembler.assemble(chunk('msg', '1', '0', encode({ test: true })));
     expect(result).toBeNull();
   });
 
   it('negative part_sum returns null', () => {
-    const result = assembler.assemble(chunk('msg', '0', '-3', encode({ test: true })));
+    const result = assembler.assemble(chunk('msg', '1', '-3', encode({ test: true })));
     expect(result).toBeNull();
   });
 
@@ -55,26 +60,26 @@ describe('ChunkedMessageAssembler validation', () => {
     const small = new ChunkedMessageAssembler(30_000, 2);
 
     // Add two incomplete messages
-    small.assemble(chunk('old', '0', '3', encode({ a: 1 })));
-    small.assemble(chunk('newer', '0', '3', encode({ b: 2 })));
+    small.assemble(chunk('old', '1', '3', encode({ a: 1 })));
+    small.assemble(chunk('newer', '1', '3', encode({ b: 2 })));
 
     // Third message should evict 'old'
-    small.assemble(chunk('newest', '0', '3', encode({ c: 3 })));
+    small.assemble(chunk('newest', '1', '3', encode({ c: 3 })));
 
     // 'old' should be evicted — sending remaining parts should not complete it
-    const resultOld = small.assemble(chunk('old', '1', '3', encode({ a: 1 })));
+    const resultOld = small.assemble(chunk('old', '2', '3', encode({ a: 1 })));
     expect(resultOld).toBeNull();
   });
 
   it('valid single chunk still assembles correctly after validation changes', () => {
     const payload = { validated: true };
-    const raw = chunk('valid', '0', '1', encode(payload));
+    const raw = chunk('valid', '1', '1', encode(payload));
     const result = assembler.assemble(raw);
     expect(result).toEqual(payload);
   });
 
   it('??? as part_sum still treated as unknown total', () => {
-    const result = assembler.assemble(chunk('unk', '0', '???', encode({ test: true })));
+    const result = assembler.assemble(chunk('unk', '1', '???', encode({ test: true })));
     expect(result).toBeNull(); // Unknown total — never completes
   });
 });
