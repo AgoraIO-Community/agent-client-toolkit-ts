@@ -80,11 +80,13 @@ The following parameters must be set when starting the AI agent via the Agora RE
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `rtcEngine` | `IAgoraRTCClient` | Yes | Agora RTC client instance |
-| `rtmConfig` | `{ rtmEngine: RTMClient }` | No | RTM client for text/image messaging and agent interruption |
+| `rtcEngine` | `RTCEngine` | Yes | Structural RTC client contract (`on/off` for `'audio-pts'` and `'stream-message'`) |
+| `rtmConfig` | `{ rtmEngine: RTMEngine }` | No | Structural RTM client contract (`publish`, `addEventListener`, `removeEventListener`) |
 | `renderMode` | `TranscriptHelperMode` | No | `TEXT`, `WORD`, `CHUNK`, or `AUTO`. If omitted, defaults to `AUTO` — mode is detected from the first agent message. |
 | `enableLog` | `boolean` | No | Enable debug logging (default: `false`) |
 | `enableAgoraMetrics` | `boolean` | No | Load `@agora-js/report` for usage metrics (default: `false`) |
+
+`RTCEngine` and `RTMEngine` are toolkit-exported structural interfaces. A normal `agora-rtc-sdk-ng` client and `agora-rtm` client satisfy them directly, and no `as unknown as` casts are required.
 
 ## API Reference
 
@@ -398,4 +400,3 @@ See the [Agora Conversational AI documentation](https://docs.agora.io/en/convers
 | Package | Feature | Fallback behavior |
 |---------|---------|-------------------|
 | `@agora-js/report` | `enableAgoraMetrics: true` | Falls back to `console.debug` |
-

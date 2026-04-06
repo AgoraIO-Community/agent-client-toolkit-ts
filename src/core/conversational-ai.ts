@@ -1,6 +1,10 @@
-import type { IAgoraRTCClient, UID } from 'agora-rtc-sdk-ng';
-import type { ChannelType, RTMClient, RTMEvents } from 'agora-rtm';
-import { type AgoraVoiceAIConfig, type RTMConfig } from './config';
+import type {
+  AgoraVoiceAIConfig,
+  RTCEngine,
+  RTMConfig,
+  RTMEngine,
+  RTCStreamMessagePublisher,
+} from './config';
 
 import {
   type AgentState,
@@ -23,6 +27,10 @@ import {
   type TranscriptionBase,
   type ChatMessageBase,
   type AgoraVoiceAIState,
+  type PresenceState,
+  type RTMMessageEvent,
+  type RTMPresenceEvent,
+  type RTMStatusEvent,
   NotInitializedError,
   RTMRequiredError,
   ConversationalAIError,
@@ -43,7 +51,7 @@ import { CovSubRenderController } from '../rendering/sub-render';
 import { ChunkedMessageAssembler } from '../messaging/chunked';
 
 const TAG = 'AgoraVoiceAI';
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 
 const formatLog = factoryFormatLog({ tag: TAG });
 
@@ -152,8 +160,8 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   private static _initPromise: Promise<AgoraVoiceAI> | null = null;
   private callMessagePrint: (type: ELoggerType, ...args: unknown[]) => void;
 
-  protected rtcEngine: IAgoraRTCClient | null = null;
-  protected rtmEngine: RTMClient | null = null;
+  protected rtcEngine: RTCEngine | null = null;
+  protected rtmEngine: RTMEngine | null = null;
   protected renderMode: TranscriptHelperMode = TranscriptHelperMode.UNKNOWN;
   protected channel: string | null = null;
   protected covSubRenderController: CovSubRenderController;
@@ -263,7 +271,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
    * Requires RTM to be configured. Throws a descriptive error when called
    * without rtmConfig. Used internally by sendText, sendImage, and interrupt.
    */
-  private requireRTM(method = 'requireRTM'): RTMClient {
+  private requireRTM(method = 'requireRTM'): RTMEngine {
     if (!this.rtmEngine) {
       throw new RTMRequiredError(method);
     }
@@ -487,7 +495,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     try {
       const payloadStr = JSON.stringify(payload);
       const options = {
-        channelType: 'USER' as ChannelType,
+        channelType: 'USER',
         customType: MessageType.USER_TRANSCRIPTION,
       };
 
@@ -561,7 +569,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     try {
       const payloadStr = JSON.stringify(payload);
       const options = {
-        channelType: 'USER' as ChannelType,
+        channelType: 'USER',
         customType: MessageType.IMAGE_UPLOAD,
       };
 
@@ -613,7 +621,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     const rtmEngine = this.requireRTM('interrupt');
 
     const options = {
-      channelType: 'USER' as ChannelType,
+      channelType: 'USER',
       customType: MessageType.MSG_INTERRUPTED,
     };
     const messageStr = JSON.stringify({
@@ -845,7 +853,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     }
   }
 
-  private _handleRtcStreamMessage(uid: UID, stream: Uint8Array) {
+  private _handleRtcStreamMessage(uid: RTCStreamMessagePublisher, stream: Uint8Array) {
     try {
       const decoder = new TextDecoder('utf-8');
       const text = decoder.decode(stream);
@@ -898,7 +906,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     }
   }
 
-  private _handleRtmMessage(message: RTMEvents.MessageEvent) {
+  private _handleRtmMessage(message: RTMMessageEvent) {
     const traceId = genTraceID();
     this.callMessagePrint(
       ELoggerType.debug,
@@ -961,7 +969,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       );
     }
   }
-  private _handleRtmPresence(presence: RTMEvents.PresenceEvent) {
+  private _handleRtmPresence(presence: RTMPresenceEvent) {
     const traceId = genTraceID();
     this.callMessagePrint(
       ELoggerType.debug,
@@ -969,19 +977,24 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       `Publisher: ${presence.publisher}`
     );
     const stateChanged = presence.stateChanged;
-    if (stateChanged?.state && stateChanged?.turn_id) {
+    if (
+      stateChanged &&
+      typeof stateChanged.state === 'string' &&
+      typeof stateChanged.turn_id !== 'undefined'
+    ) {
       this.callMessagePrint(
         ELoggerType.debug,
         `>>> [traceID:${traceId}] ${RTMEventType.PRESENCE}`,
         `State changed: ${stateChanged.state}, Turn ID: ${stateChanged.turn_id}, timestamp: ${presence.timestamp}`
       );
       this.covSubRenderController.handleAgentStatus(
-        presence as Omit<RTMEvents.PresenceEvent, 'stateChanged'> & {
+        {
+          ...presence,
           stateChanged: {
-            state: AgentState;
-            turn_id: string;
-          };
-        }
+            state: stateChanged.state as AgentState,
+            turn_id: String(stateChanged.turn_id),
+          },
+        } as PresenceState
       );
     } else {
       this.callMessagePrint(
@@ -991,11 +1004,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
       );
     }
   }
-  private _handleRtmStatus(
-    status:
-      | RTMEvents.RTMConnectionStatusChangeEvent
-      | RTMEvents.StreamChannelConnectionStatusChangeEvent
-  ) {
+  private _handleRtmStatus(status: RTMStatusEvent) {
     const traceId = genTraceID();
     this.callMessagePrint(
       ELoggerType.debug,

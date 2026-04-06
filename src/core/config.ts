@@ -1,15 +1,32 @@
-import type { IAgoraRTCClient } from 'agora-rtc-sdk-ng';
-import type { RTMClient } from 'agora-rtm';
 import { TranscriptHelperMode } from './types';
+
+export type RTCStreamMessagePublisher = string | number;
+
+/** Structural contract for the RTC client consumed by AgoraVoiceAI. */
+export interface RTCEngine {
+  on(eventName: string, listener: (...args: any[]) => void): void;
+  off(eventName: string, listener: (...args: any[]) => void): void;
+}
+
+/** Structural contract for the RTM client consumed by AgoraVoiceAI. */
+export interface RTMEngine {
+  publish(
+    channelName: string,
+    message: string | Uint8Array,
+    options?: { channelType?: string; customType?: string }
+  ): Promise<unknown>;
+  addEventListener(eventName: string, listener: (...args: any[]) => void): void;
+  removeEventListener(eventName: string, listener: (...args: any[]) => void): void;
+}
 
 export interface RTMConfig {
   /** Pre-initialized RTM client. Required if using RTM. */
-  rtmEngine: RTMClient;
+  rtmEngine: RTMEngine;
 }
 
 export interface AgoraVoiceAIConfig {
   /** Pre-initialized Agora RTC client. Always required. */
-  rtcEngine: IAgoraRTCClient;
+  rtcEngine: RTCEngine;
 
   /**
    * Optional RTM configuration. When absent, the toolkit operates on

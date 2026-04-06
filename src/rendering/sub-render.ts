@@ -1,5 +1,3 @@
-import type { RTMEvents } from 'agora-rtm';
-
 import type {
   AgentState,
   AgentTranscription,
@@ -8,6 +6,7 @@ import type {
   MessageMetrics,
   MessageSalStatusData,
   PresenceState,
+  RTMMessageEvent,
   TranscriptHelperItem,
   TranscriptionBase,
   UserTranscription,
@@ -532,7 +531,7 @@ export class CovSubRenderController {
   public handleMessage<T extends TranscriptionBase>(
     message: T,
     options: {
-      publisher: RTMEvents.MessageEvent['publisher'];
+      publisher: RTMMessageEvent['publisher'];
     }
   ) {
     const messageObject = message?.object;

@@ -1,13 +1,9 @@
-import type {
-  ConnectionDisconnectedReason,
-  ConnectionState,
-  IAgoraRTCRemoteUser,
-  ICameraVideoTrack,
-  IMicrophoneAudioTrack,
-  NetworkQuality,
-  UID,
-} from 'agora-rtc-sdk-ng';
-import type { RTMEvents } from 'agora-rtm';
+export type RTCConnectionState = string;
+export type RTCMediaType = 'audio' | 'video';
+export type RTCUserId = string | number;
+export type RTCNetworkQuality = unknown;
+export type RTCConnectionDisconnectedReason = string | number | undefined;
+export type RTMMessagePayload = string | Uint8Array;
 
 /**
  * Transcript modes for the Conversational AI API
@@ -103,32 +99,31 @@ export type StateChangeEvent = {
 };
 
 export interface HelperRTMEvents {
-  [RTMEventType.MESSAGE]: (message: RTMEvents.MessageEvent) => void;
-  [RTMEventType.PRESENCE]: (presence: RTMEvents.PresenceEvent) => void;
-  [RTMEventType.STATUS]: (
-    status:
-      | RTMEvents.RTMConnectionStatusChangeEvent
-      | RTMEvents.StreamChannelConnectionStatusChangeEvent
-  ) => void;
+  [RTMEventType.MESSAGE]: (message: RTMMessageEvent) => void;
+  [RTMEventType.PRESENCE]: (presence: RTMPresenceEvent) => void;
+  [RTMEventType.STATUS]: (status: RTMStatusEvent) => void;
 }
 
 export interface HelperRTCEvents {
-  [RTCEventType.NETWORK_QUALITY]: (quality: NetworkQuality) => void;
-  [RTCEventType.USER_PUBLISHED]: (user: IAgoraRTCRemoteUser, mediaType: 'audio' | 'video') => void;
-  [RTCEventType.USER_UNPUBLISHED]: (
-    user: IAgoraRTCRemoteUser,
-    mediaType: 'audio' | 'video'
+  [RTCEventType.NETWORK_QUALITY]: (quality: RTCNetworkQuality) => void;
+  [RTCEventType.USER_PUBLISHED]: (
+    user: Record<string, unknown>,
+    mediaType: RTCMediaType
   ) => void;
-  [RTCEventType.USER_JOINED]: (user: IAgoraRTCRemoteUser) => void;
-  [RTCEventType.USER_LEFT]: (user: IAgoraRTCRemoteUser, reason?: string) => void;
+  [RTCEventType.USER_UNPUBLISHED]: (
+    user: Record<string, unknown>,
+    mediaType: RTCMediaType
+  ) => void;
+  [RTCEventType.USER_JOINED]: (user: Record<string, unknown>) => void;
+  [RTCEventType.USER_LEFT]: (user: Record<string, unknown>, reason?: string) => void;
   [RTCEventType.CONNECTION_STATE_CHANGE]: (data: {
-    curState: ConnectionState;
-    revState: ConnectionState;
-    reason?: ConnectionDisconnectedReason;
+    curState: RTCConnectionState;
+    revState: RTCConnectionState;
+    reason?: RTCConnectionDisconnectedReason;
     channel: string;
   }) => void;
   [RTCEventType.AUDIO_PTS]: (pts: number) => void;
-  [RTCEventType.STREAM_MESSAGE]: (uid: UID, stream: Uint8Array) => void;
+  [RTCEventType.STREAM_MESSAGE]: (uid: RTCUserId, stream: Uint8Array) => void;
 }
 
 export class ConversationalAIError extends Error {
@@ -256,7 +251,31 @@ export interface MessageError {
   [x: string]: unknown;
 }
 
-export interface PresenceState extends Omit<RTMEvents.PresenceEvent, 'stateChanged'> {
+export interface RTMMessageEvent {
+  publisher: string;
+  messageType?: string;
+  message: RTMMessagePayload;
+  [key: string]: unknown;
+}
+
+export interface RTMPresenceEvent {
+  publisher: string;
+  timestamp: number;
+  eventType?: string;
+  channelName?: string;
+  channelType?: string;
+  channelGroup?: string;
+  stateChanged?: {
+    state?: unknown;
+    turn_id?: unknown;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export type RTMStatusEvent = Record<string, unknown>;
+
+export interface PresenceState extends RTMPresenceEvent {
   stateChanged: {
     state: AgentState;
     turn_id: string;
@@ -284,8 +303,8 @@ export interface TranscriptHelperItem<T> {
 
 // --- rtc ---
 export interface UserTracks {
-  videoTrack?: ICameraVideoTrack;
-  audioTrack?: IMicrophoneAudioTrack;
+  videoTrack?: unknown;
+  audioTrack?: unknown;
 }
 
 // --- rtm ---
