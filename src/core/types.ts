@@ -304,6 +304,12 @@ export type QueueItem = {
   uid: string;
 };
 
+/**
+ * Transcript item emitted to consumers via `TRANSCRIPT_UPDATED`.
+ *
+ * @typeParam T - Metadata payload carried alongside the normalized transcript
+ * text, such as `Partial<UserTranscription | AgentTranscription>`.
+ */
 export interface TranscriptHelperItem<T> {
   uid: string;
   stream_id: number;
