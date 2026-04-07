@@ -1,8 +1,22 @@
-import type { AgoraVoiceAIConfig, RTCEngine, RTMEngine } from '../../../src';
+import type {
+  AgoraVoiceAIConfig,
+  RTCEngine,
+  RTMEngine,
+} from '../../../src';
 
 declare const foreignRtcClient: {
-  on(eventName: string, listener: (...args: any[]) => void): void;
-  off(eventName: string, listener: (...args: any[]) => void): void;
+  on(eventName: 'audio-pts', listener: (pts: number) => void): void;
+  on(
+    eventName: 'stream-message',
+    listener: (uid: string | number, stream: Uint8Array) => void
+  ): void;
+  on(eventName: string, listener: (...args: unknown[]) => void): void;
+  off(eventName: 'audio-pts', listener: (pts: number) => void): void;
+  off(
+    eventName: 'stream-message',
+    listener: (uid: string | number, stream: Uint8Array) => void
+  ): void;
+  off(eventName: string, listener: (...args: unknown[]) => void): void;
 };
 
 declare const foreignRtmClient: {
@@ -32,5 +46,30 @@ const config: AgoraVoiceAIConfig = {
     rtmEngine,
   },
 };
+
+declare const strictRtcEngine: RTCEngine;
+strictRtcEngine.on('audio-pts', (pts) => {
+  const n: number = pts;
+  void n;
+});
+strictRtcEngine.on('stream-message', (uid, stream) => {
+  const id: string | number = uid;
+  const bytes: Uint8Array = stream;
+  void id;
+  void bytes;
+});
+strictRtcEngine.on('some-other-event', (...args) => {
+  const received: unknown[] = args;
+  void received;
+});
+
+// @ts-expect-error wrong listener signature for audio-pts
+strictRtcEngine.on('audio-pts', (uid: string) => {
+  void uid;
+});
+// @ts-expect-error wrong listener signature for stream-message
+strictRtcEngine.on('stream-message', (pts: number) => {
+  void pts;
+});
 
 void config;

@@ -5,6 +5,25 @@ export type RTCNetworkQuality = unknown;
 export type RTCConnectionDisconnectedReason = string | number | undefined;
 export type RTMMessagePayload = string | Uint8Array;
 
+export interface RTCAudioTrackLike {
+  setEnabled?(enabled: boolean): Promise<void> | void;
+  play?(): void;
+  stop?(): void;
+  close?(): void;
+}
+
+export interface RTCVideoTrackLike extends RTCAudioTrackLike {
+  play?(element?: string | HTMLElement): void;
+}
+
+export interface RTCRemoteUserLike {
+  uid?: RTCUserId;
+  hasAudio?: boolean;
+  hasVideo?: boolean;
+  audioTrack?: RTCAudioTrackLike;
+  videoTrack?: RTCVideoTrackLike;
+}
+
 /**
  * Transcript modes for the Conversational AI API
  *
@@ -106,16 +125,10 @@ export interface HelperRTMEvents {
 
 export interface HelperRTCEvents {
   [RTCEventType.NETWORK_QUALITY]: (quality: RTCNetworkQuality) => void;
-  [RTCEventType.USER_PUBLISHED]: (
-    user: Record<string, unknown>,
-    mediaType: RTCMediaType
-  ) => void;
-  [RTCEventType.USER_UNPUBLISHED]: (
-    user: Record<string, unknown>,
-    mediaType: RTCMediaType
-  ) => void;
-  [RTCEventType.USER_JOINED]: (user: Record<string, unknown>) => void;
-  [RTCEventType.USER_LEFT]: (user: Record<string, unknown>, reason?: string) => void;
+  [RTCEventType.USER_PUBLISHED]: (user: RTCRemoteUserLike, mediaType: RTCMediaType) => void;
+  [RTCEventType.USER_UNPUBLISHED]: (user: RTCRemoteUserLike, mediaType: RTCMediaType) => void;
+  [RTCEventType.USER_JOINED]: (user: RTCRemoteUserLike) => void;
+  [RTCEventType.USER_LEFT]: (user: RTCRemoteUserLike, reason?: string) => void;
   [RTCEventType.CONNECTION_STATE_CHANGE]: (data: {
     curState: RTCConnectionState;
     revState: RTCConnectionState;
@@ -303,8 +316,8 @@ export interface TranscriptHelperItem<T> {
 
 // --- rtc ---
 export interface UserTracks {
-  videoTrack?: unknown;
-  audioTrack?: unknown;
+  videoTrack?: RTCVideoTrackLike;
+  audioTrack?: RTCAudioTrackLike;
 }
 
 // --- rtm ---

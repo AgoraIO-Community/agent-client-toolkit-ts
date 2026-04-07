@@ -1,11 +1,22 @@
 import { TranscriptHelperMode } from './types';
 
 export type RTCStreamMessagePublisher = string | number;
+export type RTCAudioPtsListener = (pts: number) => void;
+export type RTCStreamMessageListener = (
+  uid: RTCStreamMessagePublisher,
+  stream: Uint8Array
+) => void;
+export type RTCFallbackListener = (...args: unknown[]) => void;
 
 /** Structural contract for the RTC client consumed by AgoraVoiceAI. */
 export interface RTCEngine {
-  on(eventName: string, listener: (...args: any[]) => void): void;
-  off(eventName: string, listener: (...args: any[]) => void): void;
+  on(eventName: 'audio-pts', listener: RTCAudioPtsListener): void;
+  on(eventName: 'stream-message', listener: RTCStreamMessageListener): void;
+  on(eventName: string, listener: RTCFallbackListener): void;
+
+  off(eventName: 'audio-pts', listener: RTCAudioPtsListener): void;
+  off(eventName: 'stream-message', listener: RTCStreamMessageListener): void;
+  off(eventName: string, listener: RTCFallbackListener): void;
 }
 
 /** Structural contract for the RTM client consumed by AgoraVoiceAI. */
