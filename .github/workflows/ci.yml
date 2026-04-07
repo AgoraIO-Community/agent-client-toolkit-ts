@@ -48,6 +48,42 @@ jobs:
       - name: Test React
         run: pnpm --filter agent-client-toolkit-react test
 
+      - name: Coverage
+        if: matrix.node-version == 20
+        run: pnpm test:coverage
+
+      - name: Coverage Summary
+        if: matrix.node-version == 20
+        run: |
+          CORE_SUMMARY="packages/conversational-ai/coverage/coverage-summary.json"
+          REACT_SUMMARY="packages/react/coverage/coverage-summary.json"
+
+          if [ ! -f "$CORE_SUMMARY" ] || [ ! -f "$REACT_SUMMARY" ]; then
+            echo "Coverage summary file(s) missing"
+            ls -la packages/conversational-ai/coverage || true
+            ls -la packages/react/coverage || true
+            exit 1
+          fi
+
+          core_lines=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.lines.pct));" "$CORE_SUMMARY")
+          core_branches=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.branches.pct));" "$CORE_SUMMARY")
+          core_functions=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.functions.pct));" "$CORE_SUMMARY")
+          core_statements=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.statements.pct));" "$CORE_SUMMARY")
+
+          react_lines=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.lines.pct));" "$REACT_SUMMARY")
+          react_branches=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.branches.pct));" "$REACT_SUMMARY")
+          react_functions=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.functions.pct));" "$REACT_SUMMARY")
+          react_statements=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(j.total.statements.pct));" "$REACT_SUMMARY")
+
+          {
+            echo "## Coverage Summary"
+            echo
+            echo "| Package | Lines | Branches | Functions | Statements |"
+            echo "| --- | ---: | ---: | ---: | ---: |"
+            echo "| agora-agent-client-toolkit | ${core_lines}% | ${core_branches}% | ${core_functions}% | ${core_statements}% |"
+            echo "| agora-agent-client-toolkit-react | ${react_lines}% | ${react_branches}% | ${react_functions}% | ${react_statements}% |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   publish:
     needs: [build-and-test]
     if: (github.event_name == 'push' && contains(github.ref, 'refs/tags/')) || github.event_name == 'workflow_dispatch'

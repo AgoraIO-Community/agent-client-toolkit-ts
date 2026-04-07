@@ -30,6 +30,7 @@
     "typecheck:interop": "tsc -p __typetests__/tsconfig.json --noEmit",
     "clean": "rm -rf dist",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "prepublishOnly": "pnpm run build"
   },
@@ -52,6 +53,7 @@
     "jsdom": "^24.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.3.3",
+    "@vitest/coverage-v8": "^2.1.9",
     "vitest": "^2.0.0"
   },
   "keywords": [

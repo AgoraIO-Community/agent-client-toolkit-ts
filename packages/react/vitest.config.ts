@@ -6,6 +6,8 @@ export default defineConfig({
     globals: true,
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json-summary'],
+      reportsDirectory: './coverage',
       thresholds: {
         lines: 70,
         branches: 60,
