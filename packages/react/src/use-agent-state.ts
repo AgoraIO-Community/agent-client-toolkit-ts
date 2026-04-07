@@ -22,6 +22,9 @@ export interface UseAgentStateReturn {
  * Must be rendered inside a `ConversationalAIProvider`. Returns nulls
  * until the provider's `AgoraVoiceAI` instance is initialized.
  *
+ * @returns Current state (`agentState`), full event payload (`stateEvent`),
+ * and `agentUserId` for the latest state change.
+ *
  * @example
  * function StatusBar() {
  *   const { agentState } = useAgentState();

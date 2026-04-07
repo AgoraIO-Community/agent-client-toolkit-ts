@@ -14,6 +14,16 @@ pnpm add agora-agent-client-toolkit
 pnpm add agora-agent-client-toolkit-react
 ```
 
+### Optional dependencies
+
+The core package keeps optional features out of the default runtime bundle:
+
+- `@agora-js/report`: used only when `enableAgoraMetrics: true`
+- `jszip`: used only by ZIP-related helper paths
+
+If these packages are not installed, the toolkit keeps working and falls back
+to no-op / console behavior for those optional paths.
+
 ## Quick Start
 
 ### Vanilla JS

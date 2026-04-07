@@ -179,6 +179,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   private readonly _boundHandleRtmPresence = this._handleRtmPresence.bind(this);
   private readonly _boundHandleRtmStatus = this._handleRtmStatus.bind(this);
 
+  // ── Construction ───────────────────────────────────────────────────────────
   constructor() {
     super();
 
@@ -219,6 +220,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     });
   }
 
+  // ── Public Static API ─────────────────────────────────────────────────────
   /**
    * Gets the singleton instance of AgoraVoiceAI.
    *
@@ -241,6 +243,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     return AgoraVoiceAI._instance?.getState() ?? null;
   }
 
+  // ── Public Instance State API ─────────────────────────────────────────────
   /**
    * Returns a snapshot of the current SDK state for debugging.
    * The returned object is a plain copy — no references to internal state.
@@ -278,6 +281,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     return this.rtmEngine;
   }
 
+  // ── Initialization Lifecycle ──────────────────────────────────────────────
   /**
    * Initializes the AgoraVoiceAI singleton instance.
    *
@@ -390,6 +394,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     return AgoraVoiceAI._instance;
   }
 
+  // ── Public Subscription Lifecycle ─────────────────────────────────────────
   /**
    * Subscribes to a message channel for real-time updates.
    *
@@ -460,6 +465,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     AgoraVoiceAI._instance = null;
   }
 
+  // ── Public Chat API ───────────────────────────────────────────────────────
   /**
    * Sends a chat message to the conversational AI agent.
    *
@@ -701,6 +707,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     }
   }
 
+  // ── Internal Event Emitters (Render Controller -> Public API) ────────────
   private onChatHistoryUpdated(
     chatHistory: TranscriptHelperItem<Partial<UserTranscription | AgentTranscription>>[]
   ) {
@@ -787,6 +794,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     this.emit(AgoraVoiceAIEvents.MESSAGE_SAL_STATUS, agentUserId, message);
   }
 
+  // ── Internal Diagnostics (Dev-only warnings) ─────────────────────────────
   private _clearEventTimeout() {
     if (this._eventTimeoutId !== null) {
       clearTimeout(this._eventTimeoutId);
@@ -866,6 +874,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     }, 15_000);
   }
 
+  // ── Engine Event Binding ──────────────────────────────────────────────────
   private bindRtcEvents() {
     this.getCfg().rtcEngine.on(RTCEventType.AUDIO_PTS, this._boundHandleRtcAudioPTS);
     this.getCfg().rtcEngine.on(RTCEventType.STREAM_MESSAGE, this._boundHandleRtcStreamMessage);
@@ -895,6 +904,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     }
   }
 
+  // ── Low-level Engine Handlers ─────────────────────────────────────────────
   private _handleRtcAudioPTS(pts: number) {
     try {
       this.callMessagePrint(ELoggerType.debug, `<<< ${RTCEventType.AUDIO_PTS}`, pts);

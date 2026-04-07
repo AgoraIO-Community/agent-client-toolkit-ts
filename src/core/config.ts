@@ -35,6 +35,13 @@ export interface RTMConfig {
   rtmEngine: RTMEngine;
 }
 
+/**
+ * Configuration for initializing {@link AgoraVoiceAI}.
+ *
+ * Pass your pre-created RTC client in `rtcEngine`. RTM is optional; provide
+ * `rtmConfig.rtmEngine` only when you need RTM-dependent features such as
+ * `sendText`, `sendImage`, `interrupt`, and RTM state events.
+ */
 export interface AgoraVoiceAIConfig {
   /** Pre-initialized Agora RTC client. Always required. */
   rtcEngine: RTCEngine;
@@ -46,7 +53,15 @@ export interface AgoraVoiceAIConfig {
    */
   rtmConfig?: RTMConfig;
 
+  /**
+   * Transcript rendering mode.
+   * - `AUTO` (recommended): detect mode from incoming agent messages.
+   * - `TEXT`: emit full text updates.
+   * - `WORD`: emit word-timed updates (requires RTC PTS metadata setup).
+   * - `CHUNK`: progressively reveal text chunks.
+   */
   renderMode?: TranscriptHelperMode;
+  /** Enable SDK debug logging to console and DEBUG_LOG events. */
   enableLog?: boolean;
 
   /**

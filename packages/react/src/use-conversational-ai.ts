@@ -289,7 +289,9 @@ export function ConversationalAIProvider({
   config,
   children,
 }: {
+  /** Hook config forwarded to `useConversationalAI` core lifecycle logic. */
   config: UseConversationalAIConfig;
+  /** React subtree that can consume standalone hooks via context. */
   children: React.ReactNode;
 }): React.ReactElement {
   const { aiInstance } = useConversationalAICore(config);

@@ -16,6 +16,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 #### Added
 - Interop type-check fixture: `packages/conversational-ai/__typetests__/interop.ts` with `typecheck:interop` script
 
+#### Upgrade notes
+- `AgoraVoiceAIConfig.rtcEngine` and `RTMConfig.rtmEngine` now use structural contracts (`RTCEngine`, `RTMEngine`) instead of peer SDK class/interface types.
+- Existing real Agora RTC/RTM clients continue to work without code changes.
+- If your app previously used casts (for example `as unknown as`), they are now redundant and can be removed.
+- If you authored custom wrappers, ensure they implement the required methods:
+  - RTC: `on`, `off`
+  - RTM: `publish`, `addEventListener`, `removeEventListener`
+
 ### agora-agent-client-toolkit-react
 
 #### Changed
