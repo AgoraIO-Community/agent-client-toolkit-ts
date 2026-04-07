@@ -2,10 +2,7 @@ import { TranscriptHelperMode } from './types';
 
 export type RTCStreamMessagePublisher = string | number;
 export type RTCAudioPtsListener = (pts: number) => void;
-export type RTCStreamMessageListener = (
-  uid: RTCStreamMessagePublisher,
-  stream: Uint8Array
-) => void;
+export type RTCStreamMessageListener = (uid: RTCStreamMessagePublisher, stream: Uint8Array) => void;
 export type RTCFallbackListener = (...args: unknown[]) => void;
 
 /** Structural contract for the RTC client consumed by AgoraVoiceAI. */

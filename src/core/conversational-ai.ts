@@ -314,8 +314,7 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
   }
 
   private static _validateEngines(cfg: AgoraVoiceAIConfig): void {
-    const isDev =
-      typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
+    const isDev = typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
     if (!isDev) {
       return;
     }
@@ -1048,15 +1047,13 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
         `>>> [traceID:${traceId}] ${RTMEventType.PRESENCE}`,
         `State changed: ${stateChanged.state}, Turn ID: ${stateChanged.turn_id}, timestamp: ${presence.timestamp}`
       );
-      this.covSubRenderController.handleAgentStatus(
-        {
-          ...presence,
-          stateChanged: {
-            state: stateChanged.state as AgentState,
-            turn_id: String(stateChanged.turn_id),
-          },
-        } as PresenceState
-      );
+      this.covSubRenderController.handleAgentStatus({
+        ...presence,
+        stateChanged: {
+          state: stateChanged.state as AgentState,
+          turn_id: String(stateChanged.turn_id),
+        },
+      } as PresenceState);
     } else {
       this.callMessagePrint(
         ELoggerType.debug,
