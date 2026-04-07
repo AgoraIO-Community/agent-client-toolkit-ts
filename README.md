@@ -14,6 +14,11 @@ pnpm add agora-agent-client-toolkit
 pnpm add agora-agent-client-toolkit-react
 ```
 
+## Migration
+
+Upgrading from `1.1.x` to `1.2.0`?
+See the quick migration guide: [MIGRATION.md](./MIGRATION.md).
+
 ### Optional dependencies
 
 The core package keeps optional features out of the default runtime bundle:
