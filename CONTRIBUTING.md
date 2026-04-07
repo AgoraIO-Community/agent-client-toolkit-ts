@@ -6,7 +6,7 @@ Thanks for your interest in contributing to the Agora Agent Client Toolkit.
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm 9+ (**required** — do not use npm or yarn)
 
 ### Install and build
