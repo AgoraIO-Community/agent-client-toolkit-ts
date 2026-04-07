@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { AgoraVoiceAI } from '../../../src/core/conversational-ai';
 import { AgoraVoiceAIEvents } from '../../../src/core/events';
-import { NotFoundError } from '../../../src/core/types';
+import { ConversationalAIError, NotFoundError } from '../../../src/core/types';
 
 // Minimal RTC client mock — only the methods AgoraVoiceAI calls
 function makeRtcClient() {
@@ -114,5 +114,44 @@ describe('AgoraVoiceAI lifecycle', () => {
     });
     expect(ai2).toBeInstanceOf(AgoraVoiceAI);
     expect(AgoraVoiceAI.getInstance()).toBe(ai2);
+  });
+
+  it('init() throws a descriptive error when rtcEngine.on is missing', async () => {
+    await expect(
+      AgoraVoiceAI.init({
+        rtcEngine: { off: vi.fn() } as never,
+      })
+    ).rejects.toThrow(ConversationalAIError);
+    await expect(
+      AgoraVoiceAI.init({
+        rtcEngine: { off: vi.fn() } as never,
+      })
+    ).rejects.toThrow('rtcEngine.on(eventName, listener)');
+  });
+
+  it('init() throws a descriptive error when rtmEngine.publish is missing', async () => {
+    const rtcClient = makeRtcClient();
+    await expect(
+      AgoraVoiceAI.init({
+        rtcEngine: rtcClient as never,
+        rtmConfig: {
+          rtmEngine: {
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+          } as never,
+        },
+      })
+    ).rejects.toThrow(ConversationalAIError);
+    await expect(
+      AgoraVoiceAI.init({
+        rtcEngine: rtcClient as never,
+        rtmConfig: {
+          rtmEngine: {
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+          } as never,
+        },
+      })
+    ).rejects.toThrow('rtmEngine.publish(channelName, message, options?)');
   });
 });

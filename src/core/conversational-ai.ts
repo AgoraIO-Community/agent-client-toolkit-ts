@@ -309,7 +309,58 @@ export class AgoraVoiceAI extends EventHelper<AgoraVoiceAIEventHandlers> {
     }
   }
 
+  private static _validateEngines(cfg: AgoraVoiceAIConfig): void {
+    const isDev =
+      typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
+    if (!isDev) {
+      return;
+    }
+
+    const assertFunction = (owner: string, key: string, value: unknown): void => {
+      if (typeof value !== 'function') {
+        throw new ConversationalAIError(
+          `[AgoraVoiceAI] Invalid ${owner}: expected \`${key}\` to be a function.`
+        );
+      }
+    };
+
+    const rtcEngine = cfg.rtcEngine as unknown as
+      | { on?: unknown; off?: unknown }
+      | null
+      | undefined;
+    assertFunction('rtcEngine', 'rtcEngine.on(eventName, listener)', rtcEngine?.on);
+    assertFunction('rtcEngine', 'rtcEngine.off(eventName, listener)', rtcEngine?.off);
+
+    const rtmEngine = cfg.rtmConfig?.rtmEngine as unknown as
+      | {
+          publish?: unknown;
+          addEventListener?: unknown;
+          removeEventListener?: unknown;
+        }
+      | null
+      | undefined;
+    if (rtmEngine) {
+      assertFunction(
+        'rtmEngine',
+        'rtmEngine.publish(channelName, message, options?)',
+        rtmEngine.publish
+      );
+      assertFunction(
+        'rtmEngine',
+        'rtmEngine.addEventListener(eventName, listener)',
+        rtmEngine.addEventListener
+      );
+      assertFunction(
+        'rtmEngine',
+        'rtmEngine.removeEventListener(eventName, listener)',
+        rtmEngine.removeEventListener
+      );
+    }
+  }
+
   private static async _doInit(cfg: AgoraVoiceAIConfig): Promise<AgoraVoiceAI> {
+    AgoraVoiceAI._validateEngines(cfg);
+
     // 1. Prepare reporter (may throw) — before any _instance mutation
     const reporter: IMetricsReporter = cfg.enableAgoraMetrics
       ? new AgoraMetricsReporter()
