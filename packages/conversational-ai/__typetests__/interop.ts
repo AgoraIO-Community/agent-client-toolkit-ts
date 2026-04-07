@@ -46,6 +46,7 @@ const config: AgoraVoiceAIConfig = {
     rtmEngine,
   },
 };
+const rtcOnlyConfig: AgoraVoiceAIConfig = { rtcEngine };
 
 declare const strictRtcEngine: RTCEngine;
 strictRtcEngine.on('audio-pts', (pts) => {
@@ -73,3 +74,4 @@ strictRtcEngine.on('stream-message', (pts: number) => {
 });
 
 void config;
+void rtcOnlyConfig;
