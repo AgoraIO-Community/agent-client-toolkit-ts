@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
+Migration notes for each release should link to the matching section in [MIGRATION.md](./MIGRATION.md).
 
 ## [v1.2.0] — 2026-04-06
 
@@ -23,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Additional lifecycle tests for invalid RTC/RTM engine inputs and React hook test coverage expansion
 
 #### Upgrade notes
+- Quick guide: see [MIGRATION.md#11x---120](./MIGRATION.md#11x---120) for `1.1.x -> 1.2.0`.
 - `AgoraVoiceAIConfig.rtcEngine` and `RTMConfig.rtmEngine` now use structural contracts (`RTCEngine`, `RTMEngine`) instead of peer SDK class/interface types.
 - Existing real Agora RTC/RTM clients continue to work without code changes.
 - If your app previously used casts (for example `as unknown as`), they are now redundant and can be removed.
