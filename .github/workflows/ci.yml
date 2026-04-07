@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Lint
-        if: matrix.node-version == 20
         run: pnpm lint
 
       - name: Format check

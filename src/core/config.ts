@@ -26,8 +26,8 @@ export interface RTMEngine {
     message: string | Uint8Array,
     options?: { channelType?: string; customType?: string }
   ): Promise<unknown>;
-  addEventListener(eventName: string, listener: (...args: any[]) => void): void;
-  removeEventListener(eventName: string, listener: (...args: any[]) => void): void;
+  addEventListener(eventName: string, listener: (...args: unknown[]) => void): void;
+  removeEventListener(eventName: string, listener: (...args: unknown[]) => void): void;
 }
 
 export interface RTMConfig {
