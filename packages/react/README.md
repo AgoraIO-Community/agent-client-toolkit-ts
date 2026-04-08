@@ -183,6 +183,25 @@ function StatusBar() {
 }
 ```
 
+### `useConversationalAIContext()`
+
+Access SDK controls from any component inside a `ConversationalAIProvider`, without having to re-pass config. Returns `sendMessage`, `interrupt`, and the underlying `instance`.
+
+```tsx
+function ChatInput({ agentUid }: { agentUid: string }) {
+  const { sendMessage, interrupt } = useConversationalAIContext();
+
+  return (
+    <div>
+      <button onClick={() => interrupt(agentUid)}>Interrupt</button>
+      <button onClick={() => sendMessage(agentUid, 'hello')}>Send</button>
+    </div>
+  );
+}
+```
+
+Use this instead of prop-drilling `interrupt`/`sendMessage` down from the component that called `useConversationalAI`. For transcript and state data, prefer the dedicated standalone hooks.
+
 ## RTC primitives
 
 For microphone/camera tracks, remote users, volume levels, and other RTC concerns, use `agora-rtc-react` directly:

@@ -308,7 +308,7 @@ export class SubRenderQueue {
         return acc;
       }, [] as TranscriptHelperObjectWord[]);
     const isMessageFinal = turn_status !== TurnStatus.IN_PROGRESS;
-    if (isMessageFinal) {
+    if (isMessageFinal && sortedWords.length > 0) {
       sortedWords[sortedWords.length - 1].word_status = turn_status;
     }
     return sortedWords;

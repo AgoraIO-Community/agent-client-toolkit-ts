@@ -35,23 +35,44 @@ jobs:
         run: pnpm format:check
 
       - name: Build core
-        run: pnpm --filter agent-client-toolkit-ts build
+        run: pnpm --filter agora-agent-client-toolkit build
 
       - name: Build React
-        run: pnpm --filter agent-client-toolkit-react build
+        run: pnpm --filter agora-agent-client-toolkit-react build
 
       - name: Typecheck core
-        run: pnpm --filter agent-client-toolkit-ts typecheck
+        run: pnpm --filter agora-agent-client-toolkit typecheck
+
+      - name: Typecheck interop
+        run: pnpm --filter agora-agent-client-toolkit typecheck:interop
 
       - name: Test core
-        run: pnpm --filter agent-client-toolkit-ts test
+        run: pnpm --filter agora-agent-client-toolkit test
 
       - name: Test React
-        run: pnpm --filter agent-client-toolkit-react test
+        run: pnpm --filter agora-agent-client-toolkit-react test
 
       - name: Coverage
         if: matrix.node-version == 20
         run: pnpm test:coverage
+
+      - name: Upload coverage (core) to Codecov
+        if: matrix.node-version == 20
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/conversational-ai/coverage/lcov.info
+          flags: core
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload coverage (react) to Codecov
+        if: matrix.node-version == 20
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/react/coverage/lcov.info
+          flags: react
+          fail_ci_if_error: false
+          verbose: true
 
       - name: Coverage Summary
         if: matrix.node-version == 20

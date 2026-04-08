@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ChunkedMessageAssembler } from '../../../src/messaging/chunked';
 
 // Helper: encode a payload as base64 (jsdom provides btoa globally)
@@ -129,5 +129,110 @@ describe('ChunkedMessageAssembler', () => {
     // The second chunk now arrives but the first is gone — cannot complete
     const result = assembler.assemble(chunk('msg10', 2, 2, full.slice(half)));
     expect(result).toBeNull();
+  });
+});
+
+describe('ChunkedMessageAssembler — TTL eviction', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('stale incomplete message is evicted after TTL expires', () => {
+    vi.useFakeTimers();
+    const ttlMs = 1000;
+    const a = new ChunkedMessageAssembler(ttlMs);
+    const payload = { ttl: true };
+    const full = encode(payload);
+    const half = Math.ceil(full.length / 2);
+
+    // Send first chunk — starts the TTL clock
+    a.assemble(chunk('ttl-msg', 1, 2, full.slice(0, half)));
+
+    // Advance time past TTL
+    vi.advanceTimersByTime(ttlMs + 1);
+
+    // Trigger eviction by assembling a new message
+    a.assemble(chunk('trigger', 1, 1, encode({ x: 1 })));
+
+    // Original message was evicted — second chunk cannot complete it
+    const result = a.assemble(chunk('ttl-msg', 2, 2, full.slice(half)));
+    expect(result).toBeNull();
+  });
+
+  it('message within TTL is not evicted', () => {
+    vi.useFakeTimers();
+    const ttlMs = 5000;
+    const a = new ChunkedMessageAssembler(ttlMs);
+    const payload = { fresh: true };
+    const full = encode(payload);
+    const half = Math.ceil(full.length / 2);
+
+    a.assemble(chunk('fresh-msg', 1, 2, full.slice(0, half)));
+
+    // Advance time but stay within TTL
+    vi.advanceTimersByTime(ttlMs - 1);
+
+    // Trigger eviction check
+    a.assemble(chunk('trigger', 1, 1, encode({ x: 1 })));
+
+    // Message should still be in cache — second chunk completes it
+    const result = a.assemble(chunk('fresh-msg', 2, 2, full.slice(half)));
+    expect(result).toEqual(payload);
+  });
+});
+
+describe('ChunkedMessageAssembler — enableLog', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('logs warn when decode fails and enableLog is true', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = new ChunkedMessageAssembler(30_000, 1000, true);
+    const notJson = btoa('not valid json {{{');
+    a.assemble(chunk('warn-msg', 1, 1, notJson));
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy.mock.calls[0][0]).toContain('Failed to decode');
+  });
+
+  it('does not log warn when decode fails and enableLog is false', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = new ChunkedMessageAssembler(30_000, 1000, false);
+    const notJson = btoa('not valid json {{{');
+    a.assemble(chunk('silent-msg', 1, 1, notJson));
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('logs warn for NaN part_idx when enableLog is true', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = new ChunkedMessageAssembler(30_000, 1000, true);
+    a.assemble(`nan-msg|abc|2|${encode({ x: 1 })}`);
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy.mock.calls[0][0]).toContain('Non-numeric');
+  });
+
+  it('logs warn for part_idx < 1 when enableLog is true', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = new ChunkedMessageAssembler(30_000, 1000, true);
+    a.assemble(`zero-msg|0|2|${encode({ x: 1 })}`);
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy.mock.calls[0][0]).toContain('Invalid part_idx');
+  });
+
+  it('logs warn for part_idx >= part_sum when enableLog is true', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = new ChunkedMessageAssembler(30_000, 1000, true);
+    a.assemble(`oob-msg|3|2|${encode({ x: 1 })}`);
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy.mock.calls[0][0]).toContain('part_idx >= part_sum');
+  });
+
+  it('logs warn for invalid part_sum (zero) when enableLog is true', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = new ChunkedMessageAssembler(30_000, 1000, true);
+    a.assemble(`bad-sum-msg|1|0|${encode({ x: 1 })}`);
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy.mock.calls[0][0]).toContain('Invalid part_sum');
   });
 });
