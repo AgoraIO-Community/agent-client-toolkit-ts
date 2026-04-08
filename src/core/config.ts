@@ -23,8 +23,10 @@ export interface RTMEngine {
     message: string | Uint8Array,
     options?: { channelType?: string; customType?: string }
   ): Promise<unknown>;
-  addEventListener(eventName: string, listener: (...args: unknown[]) => void): void;
-  removeEventListener(eventName: string, listener: (...args: unknown[]) => void): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addEventListener(eventName: string, listener: (...args: any[]) => void): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removeEventListener(eventName: string, listener: (...args: any[]) => void): void;
 }
 
 export interface RTMConfig {
