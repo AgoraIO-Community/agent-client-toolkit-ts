@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
+Migration notes for each release should link to the matching section in [MIGRATION.md](./MIGRATION.md).
+
+## [v1.2.0] — 2026-04-06
+
+### agora-agent-client-toolkit
+
+#### Changed
+- TypeScript public config contracts now use toolkit-owned structural interfaces: `RTCEngine` and `RTMEngine`
+- `AgoraVoiceAI.init()` now accepts compatible RTC/RTM client objects without requiring `as unknown as` casts in strict package-manager layouts
+- Public type surface no longer depends on `agora-rtm` event/class types (`RTMClient`, `RTMEvents`) for config and transcript event payload typing
+- Tightened RTC structural typing with transcript-focused helper interfaces (`RTCStreamMessageLike`, `RTCDataStreamParamsLike`) and stricter `RTCEngine.on/off` overloads for `'stream-message'` and `'audio-pts'`
+- Added development-time engine-shape validation in `AgoraVoiceAI.init()` with actionable error messages when required RTC/RTM methods are missing
+- Improved public API discoverability with expanded JSDoc for `AgoraVoiceAIConfig`, `renderMode`, React hooks, and `TranscriptHelperItem<T>` generic typing
+
+#### Added
+- Interop type-check fixture: `packages/conversational-ai/__typetests__/interop.ts` with `typecheck:interop` script
+- Coverage command surface (`test:coverage`) for root, core, and React packages
+- CI coverage summary output in GitHub Actions step summary
+- Additional lifecycle tests for invalid RTC/RTM engine inputs and React hook test coverage expansion
+
+#### Upgrade notes
+- Quick guide: see [MIGRATION.md#11x---120](./MIGRATION.md#11x---120) for `1.1.x -> 1.2.0`.
+- `AgoraVoiceAIConfig.rtcEngine` and `RTMConfig.rtmEngine` now use structural contracts (`RTCEngine`, `RTMEngine`) instead of peer SDK class/interface types.
+- Existing real Agora RTC/RTM clients continue to work without code changes.
+- If your app previously used casts (for example `as unknown as`), they are now redundant and can be removed.
+- If you authored custom wrappers, ensure they implement the required methods:
+  - RTC: `on`, `off`
+  - RTM: `publish`, `addEventListener`, `removeEventListener`
+- Runtime checks now fail fast in development when required engine methods are missing; align custom test doubles with the structural contracts.
+- Coverage policy now explicitly aligns with the configured Vitest thresholds in `CONTRIBUTING.md`.
+
+### agora-agent-client-toolkit-react
+
+#### Changed
+- Removed internal `rtcEngine` cast workaround when passing `useRTCClient()` into `AgoraVoiceAI.init()`
 
 ## [v1.1.0] — 2026-03-17
 

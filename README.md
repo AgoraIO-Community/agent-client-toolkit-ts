@@ -14,6 +14,21 @@ pnpm add agora-agent-client-toolkit
 pnpm add agora-agent-client-toolkit-react
 ```
 
+## Migration
+
+Upgrading from `1.1.x` to `1.2.0`?
+See the quick migration guide: [MIGRATION.md](./MIGRATION.md).
+
+### Optional dependencies
+
+The core package keeps optional features out of the default runtime bundle:
+
+- `@agora-js/report`: used only when `enableAgoraMetrics: true`
+- `jszip`: used only by ZIP-related helper paths
+
+If these packages are not installed, the toolkit keeps working and falls back
+to no-op / console behavior for those optional paths.
+
 ## Quick Start
 
 ### Vanilla JS
@@ -128,8 +143,8 @@ function VoiceSession() {
 
 | Package                                                                      | Version | Description                        |
 | ---------------------------------------------------------------------------- | ------- | ---------------------------------- |
-| [`agora-agent-client-toolkit`](./packages/conversational-ai/README.md) | 1.1.0   | Core SDK — vanilla JS / TypeScript |
-| [`agora-agent-client-toolkit-react`](./packages/react/README.md)       | 1.1.0   | React hooks                        |
+| [`agora-agent-client-toolkit`](./packages/conversational-ai/README.md) | 1.2.0   | Core SDK — vanilla JS / TypeScript |
+| [`agora-agent-client-toolkit-react`](./packages/react/README.md)       | 1.2.0   | React hooks                        |
 
 Full API reference, configuration options, and events are in each package's README.
 

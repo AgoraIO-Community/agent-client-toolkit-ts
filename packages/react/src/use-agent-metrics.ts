@@ -19,6 +19,8 @@ export interface UseAgentMetricsReturn {
  * Must be rendered inside a `ConversationalAIProvider`. Returns nulls
  * until the provider's `AgoraVoiceAI` instance is initialized.
  *
+ * @returns Latest metrics payload and source `agentUserId`.
+ *
  * @example
  * function LatencyDisplay() {
  *   const { metrics } = useAgentMetrics();

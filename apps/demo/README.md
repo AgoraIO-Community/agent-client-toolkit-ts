@@ -4,7 +4,7 @@ Vanilla TypeScript demo for `agora-agent-client-toolkit`. Shows the complete joi
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm 9+
 - An [Agora account](https://console.agora.io) with a project (App ID + tokens)
 

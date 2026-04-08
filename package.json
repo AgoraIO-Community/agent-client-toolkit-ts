@@ -1,12 +1,12 @@
 {
   "name": "agora-agent-client-toolkit",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Client-side SDK for adding Agora Conversational AI Engine features.",
   "scripts": {
     "build": "pnpm --filter agora-agent-client-toolkit build && pnpm --filter agora-agent-client-toolkit-react build",
     "test": "pnpm --filter agora-agent-client-toolkit test && pnpm --filter agora-agent-client-toolkit-react test",
-    "test:coverage": "pnpm --filter agora-agent-client-toolkit test -- --coverage && pnpm --filter agora-agent-client-toolkit-react test -- --coverage",
+    "test:coverage": "pnpm --filter agora-agent-client-toolkit test:coverage && pnpm --filter agora-agent-client-toolkit-react test:coverage",
     "lint": "eslint src/ packages/react/src/ apps/",
     "lint:fix": "eslint src/ packages/react/src/ apps/ --fix",
     "format": "prettier --write \"src/**/*.ts\" \"packages/react/src/**/*.ts\" \"apps/**/*.{ts,tsx}\"",
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@agora-js/report": "^4.24.0",
     "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^2.1.9",
     "agora-rtc-sdk-ng": "^4.23.4",
     "agora-rtm": "^2.2.1",
     "eslint": "^10.0.3",
@@ -35,7 +36,7 @@
   },
   "packageManager": "pnpm@10.23.0",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "license": "MIT",
   "repository": {

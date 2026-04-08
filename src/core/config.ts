@@ -1,15 +1,47 @@
-import type { IAgoraRTCClient } from 'agora-rtc-sdk-ng';
-import type { RTMClient } from 'agora-rtm';
 import { TranscriptHelperMode } from './types';
+
+export type RTCStreamMessagePublisher = string | number;
+export type RTCAudioPtsListener = (pts: number) => void;
+export type RTCStreamMessageListener = (uid: RTCStreamMessagePublisher, stream: Uint8Array) => void;
+export type RTCFallbackListener = (...args: unknown[]) => void;
+
+/** Structural contract for the RTC client consumed by AgoraVoiceAI. */
+export interface RTCEngine {
+  on(eventName: 'audio-pts', listener: RTCAudioPtsListener): void;
+  on(eventName: 'stream-message', listener: RTCStreamMessageListener): void;
+  on(eventName: string, listener: RTCFallbackListener): void;
+
+  off(eventName: 'audio-pts', listener: RTCAudioPtsListener): void;
+  off(eventName: 'stream-message', listener: RTCStreamMessageListener): void;
+  off(eventName: string, listener: RTCFallbackListener): void;
+}
+
+/** Structural contract for the RTM client consumed by AgoraVoiceAI. */
+export interface RTMEngine {
+  publish(
+    channelName: string,
+    message: string | Uint8Array,
+    options?: { channelType?: string; customType?: string }
+  ): Promise<unknown>;
+  addEventListener(eventName: string, listener: (...args: unknown[]) => void): void;
+  removeEventListener(eventName: string, listener: (...args: unknown[]) => void): void;
+}
 
 export interface RTMConfig {
   /** Pre-initialized RTM client. Required if using RTM. */
-  rtmEngine: RTMClient;
+  rtmEngine: RTMEngine;
 }
 
+/**
+ * Configuration for initializing {@link AgoraVoiceAI}.
+ *
+ * Pass your pre-created RTC client in `rtcEngine`. RTM is optional; provide
+ * `rtmConfig.rtmEngine` only when you need RTM-dependent features such as
+ * `sendText`, `sendImage`, `interrupt`, and RTM state events.
+ */
 export interface AgoraVoiceAIConfig {
   /** Pre-initialized Agora RTC client. Always required. */
-  rtcEngine: IAgoraRTCClient;
+  rtcEngine: RTCEngine;
 
   /**
    * Optional RTM configuration. When absent, the toolkit operates on
@@ -18,7 +50,15 @@ export interface AgoraVoiceAIConfig {
    */
   rtmConfig?: RTMConfig;
 
+  /**
+   * Transcript rendering mode.
+   * - `AUTO` (recommended): detect mode from incoming agent messages.
+   * - `TEXT`: emit full text updates.
+   * - `WORD`: emit word-timed updates (requires RTC PTS metadata setup).
+   * - `CHUNK`: progressively reveal text chunks.
+   */
   renderMode?: TranscriptHelperMode;
+  /** Enable SDK debug logging to console and DEBUG_LOG events. */
   enableLog?: boolean;
 
   /**

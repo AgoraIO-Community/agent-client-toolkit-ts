@@ -6,7 +6,7 @@ Thanks for your interest in contributing to the Agora Agent Client Toolkit.
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm 9+ (**required** — do not use npm or yarn)
 
 ### Install and build
@@ -76,7 +76,10 @@ apps/playground/                  # Interactive playground
 - React hook tests use `@testing-library/react` with `renderHook`. Test files live in `packages/react/__tests__/`.
 - All new public API surface should have corresponding tests.
 - Test error paths, not just happy paths.
-- Coverage targets: 70% lines/functions, 60% branches on core SDK. Do not reduce existing coverage.
+- Coverage thresholds are enforced in package `vitest.config.ts` files:
+  - Core (`packages/conversational-ai`): lines/statements 40%, functions 50%, branches 65%
+  - React (`packages/react`): lines/functions/statements 70%, branches 60%
+- Treat these as minimum gates; prefer raising coverage when touching low-covered areas.
 
 ## Reporting Issues
 

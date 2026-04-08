@@ -2,7 +2,6 @@ declare const process: { env?: { NODE_ENV?: string } } | undefined;
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRTCClient } from 'agora-rtc-react';
-import type { IAgoraRTCClient } from 'agora-rtc-sdk-ng';
 import {
   AgoraVoiceAI,
   AgoraVoiceAIEvents,
@@ -134,7 +133,7 @@ function useConversationalAICore(config: UseConversationalAIConfig): UseConversa
         // Initialize with the RTC client obtained from AgoraRTCProvider.
         const ai = await AgoraVoiceAI.init({
           ...config,
-          rtcEngine: rtcClient as unknown as IAgoraRTCClient,
+          rtcEngine: rtcClient,
         });
 
         if (cancelled) {
@@ -171,7 +170,7 @@ function useConversationalAICore(config: UseConversationalAIConfig): UseConversa
           setError({
             type: ModuleType.UNKNOWN,
             code: -1,
-            message: `AgoraVoiceAI.init() failed: ${err instanceof Error ? err.message : String(err)}. Check that your rtcEngine is a valid IAgoraRTCClient instance.`,
+            message: `AgoraVoiceAI.init() failed: ${err instanceof Error ? err.message : String(err)}. Check that your rtcEngine is a valid Agora RTC client instance.`,
             timestamp: Date.now(),
           });
         }
@@ -290,7 +289,9 @@ export function ConversationalAIProvider({
   config,
   children,
 }: {
+  /** Hook config forwarded to `useConversationalAI` core lifecycle logic. */
   config: UseConversationalAIConfig;
+  /** React subtree that can consume standalone hooks via context. */
   children: React.ReactNode;
 }): React.ReactElement {
   const { aiInstance } = useConversationalAICore(config);

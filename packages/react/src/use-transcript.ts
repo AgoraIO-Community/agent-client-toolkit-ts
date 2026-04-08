@@ -13,6 +13,9 @@ import { useAgoraVoiceAIInstance } from './context';
  * Must be rendered inside a `ConversationalAIProvider`. Returns an empty
  * array until the provider's `AgoraVoiceAI` instance is initialized.
  *
+ * @returns Full transcript history array from `TRANSCRIPT_UPDATED`.
+ * Always replace local transcript state with this value (do not append).
+ *
  * @example
  * function TranscriptPanel() {
  *   const transcript = useTranscript();

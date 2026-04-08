@@ -28,12 +28,13 @@ function createMockInstance() {
 
 const mockInit = vi.fn();
 const mockGetInstance = vi.fn();
+const mockRtcClient = { uid: 'mock-client' };
 
 vi.mock('agora-rtc-react', () => ({
-  useRTCClient: () => ({ uid: 'mock-client' }),
+  useRTCClient: () => mockRtcClient,
 }));
 
-vi.mock('agent-client-toolkit-ts', () => ({
+vi.mock('agora-agent-client-toolkit', () => ({
   AgoraVoiceAI: {
     init: (...args: unknown[]) => mockInit(...args),
     getInstance: (...args: unknown[]) => mockGetInstance(...args),
