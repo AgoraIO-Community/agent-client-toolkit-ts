@@ -8,7 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json-summary'],
+      reporter: ['text', 'json-summary', 'lcov'],
       reportsDirectory: 'packages/conversational-ai/coverage',
       include: ['src/**/*.ts'],
       exclude: [

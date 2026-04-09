@@ -96,7 +96,7 @@ The following parameters must be set when starting the AI agent via the Agora RE
 
 ```typescript
 AgoraVoiceAI.init(config: AgoraVoiceAIConfig): Promise<AgoraVoiceAI>
-AgoraVoiceAI.getInstance(): AgoraVoiceAI  // throws NotFoundError if not yet initialized
+AgoraVoiceAI.getInstance(): AgoraVoiceAI  // throws NotInitializedError if not yet initialized
 ```
 
 #### Instance methods
@@ -161,7 +161,7 @@ Fires on agent lifecycle transitions.
 ```typescript
 ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (agentUserId, event) => {
   // agentUserId: string
-  // event: { state: AgentState, turnID: string, timestamp: number, reason?: string }
+  // event: { state: AgentState, turnID: number, timestamp: number, reason: string }
   console.log(agentUserId, event.state);
 });
 ```
@@ -223,7 +223,7 @@ Fires when a delivery or read receipt is received for a sent message.
 ```typescript
 ai.on(AgoraVoiceAIEvents.MESSAGE_RECEIPT_UPDATED, (agentUserId, receipt) => {
   // agentUserId: string
-  // receipt: { moduleType: ModuleType, messageType: ChatMessageType, message: string, turnId: string }
+  // receipt: { moduleType: ModuleType, messageType: ChatMessageType, message: string, turnId: number }
 });
 // ChatMessageType: 'text' | 'image' | 'unknown'
 ```
