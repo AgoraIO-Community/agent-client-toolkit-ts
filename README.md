@@ -3,8 +3,6 @@
 A client-side toolkit for adding Agora Conversational AI features to applications already using the Agora RTC SDK. Runs in the browser alongside your existing RTC integration — adds transcript rendering, agent state tracking, and RTM-based messaging controls on top of `agora-rtc-sdk-ng`. Framework-agnostic core with optional React hooks.
 
 [![CI](https://github.com/AgoraIO-Community/convo-ai-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/AgoraIO-Community/convo-ai-toolkit/actions/workflows/ci.yml)
-[![Core Coverage](https://codecov.io/gh/AgoraIO-Community/convo-ai-toolkit/graph/badge.svg?flag=core)](https://codecov.io/gh/AgoraIO-Community/convo-ai-toolkit)
-[![React Coverage](https://codecov.io/gh/AgoraIO-Community/convo-ai-toolkit/graph/badge.svg?flag=react)](https://codecov.io/gh/AgoraIO-Community/convo-ai-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Install
