@@ -56,23 +56,25 @@ jobs:
         if: matrix.node-version == 20
         run: pnpm test:coverage
 
-      - name: Upload coverage (core) to Codecov
-        if: matrix.node-version == 20
-        uses: codecov/codecov-action@v4
-        with:
-          files: packages/conversational-ai/coverage/lcov.info
-          flags: core
-          fail_ci_if_error: false
-          verbose: true
+      # Temporarily disabled: Codecov uploads are flaky in current repo setup.
+      # Keep coverage generation and GitHub Step Summary as the release gate.
+      # - name: Upload coverage (core) to Codecov
+      #   if: matrix.node-version == 20
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     files: packages/conversational-ai/coverage/lcov.info
+      #     flags: core
+      #     fail_ci_if_error: false
+      #     verbose: true
 
-      - name: Upload coverage (react) to Codecov
-        if: matrix.node-version == 20
-        uses: codecov/codecov-action@v4
-        with:
-          files: packages/react/coverage/lcov.info
-          flags: react
-          fail_ci_if_error: false
-          verbose: true
+      # - name: Upload coverage (react) to Codecov
+      #   if: matrix.node-version == 20
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     files: packages/react/coverage/lcov.info
+      #     flags: react
+      #     fail_ci_if_error: false
+      #     verbose: true
 
       - name: Coverage Summary
         if: matrix.node-version == 20
