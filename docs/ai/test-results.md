@@ -6,12 +6,12 @@ Repo: agent-client-toolkit-ts
 
 ## Summary
 
-- Total questions: 10
-- Passed: 10 (correct answer, right level)
+- Total questions: 14
+- Passed: 14 (correct answer, right level)
 - L1 gaps: 0
-- L2 gaps: 0
+- L2 gaps fixed: 1 (build_pipeline.md — release gate details)
 - Cross-ref issues: 0
-- Structural checks: 24/24 passed
+- Structural checks: 11/11 passed
 
 ## Structural Checks
 
@@ -66,6 +66,25 @@ All checks passed:
 | 9 | How does the SubRenderQueue handle chunked text assembly? | Yes | L0, 02_architecture, deep_dives/rendering_controller | L0+L1+L2 | Pass |
 | 10 | What are the edge cases in RTM message parsing? | Yes | L0, 07_gotchas, deep_dives/event_system | L0+L1+L2 | Pass |
 
+### Round 2 — Targeted Coverage (Higher-Risk Contracts)
+
+| # | Question (short) | Answer Correct? | Files Read | Level Loaded | Result |
+| --- | --- | --- | --- | --- | --- |
+| 11 | What works without RTM, what fails/goes silent? | Yes | L1/06_interfaces, L1/07_gotchas, L1/02_architecture | L0+L1 | Pass |
+| 12 | How to enable agent metrics, what if @agora-js/report missing? | Yes | L1/06_interfaces, L1/07_gotchas, L1/04_conventions, L1/08_security | L0+L1 | Pass |
+| 13 | Adapt toolkit to addEventListener/removeEventListener RTM client? | Yes | L1/04_conventions, L1/06_interfaces, L1/02_architecture | L0+L1 | Pass |
+| 14 | Validate across Node versions, which CI step is release gate? | Yes (after fix) | L1/01_setup, L1/05_workflows, L2/build_pipeline | L0+L1+L2 | Pass |
+
+Round 2 initially found Q14 failed: L2 `build_pipeline.md` was missing the `needs: [build-and-test]` release gate dependency and `typecheck:interop` step. Fixed and retested.
+
+## Summary (Updated)
+
+- Total questions: 14
+- Passed: 14
+- L1 gaps: 0
+- L2 gaps: 0 (after fix to build_pipeline.md)
+- Cross-ref issues: 0
+
 ## Recommended Fixes
 
-None — all tests passed.
+All applied — `deep_dives/build_pipeline.md` expanded with release gate details and `typecheck:interop` step.

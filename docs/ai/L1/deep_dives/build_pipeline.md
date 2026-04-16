@@ -38,11 +38,14 @@ The React package is self-contained with source in `packages/react/src/`.
 
 ## CI Pipeline (`.github/workflows/ci.yml`)
 
-### Build + Test Job
-- Matrix: Node 20, 22, 24
-- Steps: lint → format check → build core → build react → typecheck → test → coverage
+### Build + Test Job (Release Gate)
+- Matrix: Node 20, 22, 24 (`fail-fast: false` — all variants must pass)
+- Steps: lint → format check → build core → build react → typecheck → typecheck:interop → test → coverage
+- `typecheck:interop` type-checks `packages/conversational-ai/__typetests__/interop.ts` — a type-level test verifying structural typing contracts work with foreign SDK shapes. Catches breaking changes to engine contracts.
+- Coverage runs only on Node 20 and writes a GitHub Step Summary. Coverage thresholds are enforced by vitest config.
 
 ### Publish Job
+- `needs: [build-and-test]` — ALL matrix variants must pass before publish proceeds. This makes `build-and-test` the hard release gate.
 - Trigger: tag push (`v*`) or manual workflow dispatch
 - Publishes both packages to npm with `--provenance`
 - Skips if version already published (checks npm registry)
