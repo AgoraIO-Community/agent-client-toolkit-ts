@@ -102,5 +102,5 @@ RTM presence event ──► AgoraVoiceAI._handleRtmPresence()
 
 ## Related Deep Dives
 
-- [Rendering Controller](deep_dives/rendering_controller.md) — TEXT/WORD/CHUNK modes, PTS timing, queue system
-- [Event System](deep_dives/event_system.md) — Event types, listener management, error routing
+- [Rendering Controller](L2/rendering_controller.md) — TEXT/WORD/CHUNK modes, PTS timing, queue system
+- [Event System](L2/event_system.md) — Event types, listener management, error routing

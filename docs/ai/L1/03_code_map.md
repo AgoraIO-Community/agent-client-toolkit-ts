@@ -80,4 +80,4 @@ repo-root/
 
 ## Related Deep Dives
 
-- [Build Pipeline](deep_dives/build_pipeline.md) — How source maps to packages, dual CJS/ESM output
+- [Build Pipeline](L2/build_pipeline.md) — How source maps to packages, dual CJS/ESM output

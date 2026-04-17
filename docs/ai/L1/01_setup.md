@@ -88,4 +88,4 @@ Use with `pnpm --filter <name> <script>` to target a specific package.
 
 ## Related Deep Dives
 
-- [Build Pipeline](deep_dives/build_pipeline.md) — Multi-target builds, workspace structure, publish workflow
+- [Build Pipeline](L2/build_pipeline.md) — Multi-target builds, workspace structure, publish workflow

@@ -80,5 +80,5 @@ These files are intentionally large. Do not split without architectural justific
 
 ## Related Deep Dives
 
-- [Rendering Controller](deep_dives/rendering_controller.md) — Detailed rendering mode behavior and edge cases
-- [Event System](deep_dives/event_system.md) — Error routing details
+- [Rendering Controller](L2/rendering_controller.md) — Detailed rendering mode behavior and edge cases
+- [Event System](L2/event_system.md) — Error routing details

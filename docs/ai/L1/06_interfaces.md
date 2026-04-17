@@ -126,5 +126,5 @@ Multi-part chunked format: `msg_id|part_idx|part_sum|base64_data`
 
 ## Related Deep Dives
 
-- [Event System](deep_dives/event_system.md) — Event lifecycle, listener management, error routing
-- [Rendering Controller](deep_dives/rendering_controller.md) — How transcript messages are processed
+- [Event System](L2/event_system.md) — Event lifecycle, listener management, error routing
+- [Rendering Controller](L2/rendering_controller.md) — How transcript messages are processed

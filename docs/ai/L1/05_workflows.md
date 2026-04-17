@@ -88,5 +88,5 @@ pnpm format:check    # verify formatting
 
 ## Related Deep Dives
 
-- [Build Pipeline](deep_dives/build_pipeline.md) — Publish workflow, dual CJS/ESM output
-- [Rendering Controller](deep_dives/rendering_controller.md) — Transcript mode debugging
+- [Build Pipeline](L2/build_pipeline.md) — Publish workflow, dual CJS/ESM output
+- [Rendering Controller](L2/rendering_controller.md) — Transcript mode debugging

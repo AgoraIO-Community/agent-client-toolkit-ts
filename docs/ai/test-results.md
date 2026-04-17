@@ -56,15 +56,15 @@ All checks passed:
 
 | # | Question | Answer Correct? | Files Read | Level Loaded | Result |
 | --- | --- | --- | --- | --- | --- |
-| 7 | How would I add a new event type to the toolkit? | Yes | L0, 05_workflows, 06_interfaces, deep_dives/event_system | L0+L1+L2 | Pass |
-| 8 | How would I add a new rendering mode? | Yes | L0, 05_workflows, 02_architecture, deep_dives/rendering_controller | L0+L1+L2 | Pass |
+| 7 | How would I add a new event type to the toolkit? | Yes | L0, 05_workflows, 06_interfaces, L2/event_system | L0+L1+L2 | Pass |
+| 8 | How would I add a new rendering mode? | Yes | L0, 05_workflows, 02_architecture, L2/rendering_controller | L0+L1+L2 | Pass |
 
 ### Deep Dive
 
 | # | Question | Answer Correct? | Files Read | Level Loaded | Result |
 | --- | --- | --- | --- | --- | --- |
-| 9 | How does the SubRenderQueue handle chunked text assembly? | Yes | L0, 02_architecture, deep_dives/rendering_controller | L0+L1+L2 | Pass |
-| 10 | What are the edge cases in RTM message parsing? | Yes | L0, 07_gotchas, deep_dives/event_system | L0+L1+L2 | Pass |
+| 9 | How does the SubRenderQueue handle chunked text assembly? | Yes | L0, 02_architecture, L2/rendering_controller | L0+L1+L2 | Pass |
+| 10 | What are the edge cases in RTM message parsing? | Yes | L0, 07_gotchas, L2/event_system | L0+L1+L2 | Pass |
 
 ### Round 2 — Targeted Coverage (Higher-Risk Contracts)
 
@@ -87,4 +87,4 @@ Round 2 initially found Q14 failed: L2 `build_pipeline.md` was missing the `need
 
 ## Recommended Fixes
 
-All applied — `deep_dives/build_pipeline.md` expanded with release gate details and `typecheck:interop` step.
+All applied — `L2/build_pipeline.md` expanded with release gate details and `typecheck:interop` step.
